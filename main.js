@@ -2,6 +2,11 @@
 // BUILT TO LAST — SPA with three views
 // ==========================================================
 
+// Populated asynchronously by loadGameData() before any chart renders
+let GAMES_DATA = [];
+let ALL_GENRES = [];
+let ALL_PLATFORMS = [];
+
 const state = {
   view: 'main',
   yearRange: [2012, 2025],
@@ -11,9 +16,6 @@ const state = {
   selectedIds: new Set(),   // the user's picks — this is what powers the sandbox
   hoveredId: null,
 };
-
-const ALL_GENRES = [...new Set(GAMES_DATA.flatMap(g => g.genres))].sort();
-const ALL_PLATFORMS = [...new Set(GAMES_DATA.flatMap(g => g.platforms))].sort();
 
 // ==========================================================
 // VIEW ROUTER
@@ -599,12 +601,42 @@ function drawComparisonChart(selector, gameAId, gameBId) {
     .attr('d', line);
 }
 
+// Pick representative game pairs for the analysis cards based on archetype
+function _pickAnalysisPairs() {
+  const hasSeries = g => g.series.length >= 12;
+  const immortals  = GAMES_DATA.filter(g => g.archetype === 'immortal'   && hasSeries(g));
+  const fadingAAA  = GAMES_DATA.filter(g => g.archetype === 'fading_aaa' && hasSeries(g));
+  const slowBurn   = GAMES_DATA.filter(g => g.archetype === 'slow_burn'  && hasSeries(g));
+  const mid        = GAMES_DATA.filter(g => g.archetype === 'mid'        && hasSeries(g));
+  const any        = GAMES_DATA.filter(hasSeries);
+
+  const at = (arr, i) => arr[i] ?? any[i] ?? GAMES_DATA[0];
+
+  return [
+    [at(immortals, 0).id, at(fadingAAA, 0).id],  // cmp-1: decade gap
+    [at(immortals, 1).id, at(fadingAAA, 1).id],  // cmp-2: launch spike
+    [at(slowBurn,  0).id, at(mid,       0).id],  // cmp-3: slow burn
+    [at(immortals, 2).id, at(fadingAAA, 2).id],  // cmp-4: completion paradox
+  ];
+}
+
 function renderAnalysisCharts() {
-  // Pair assignments — stable per card
-  drawComparisonChart('#cmp-1', 3, 12);   // decade gap: immortal old vs fading AAA
-  drawComparisonChart('#cmp-2', 4, 15);   // launch spike: both big, one lasts
-  drawComparisonChart('#cmp-3', 8, 19);   // slow burn: quiet immortal vs mid
-  drawComparisonChart('#cmp-4', 6, 11);   // completion paradox
+  const pairs = _pickAnalysisPairs();
+  const legends = document.querySelectorAll('.comparison-legend');
+
+  pairs.forEach(([aId, bId], i) => {
+    drawComparisonChart(`#cmp-${i + 1}`, aId, bId);
+
+    const a = GAMES_DATA.find(g => g.id === aId);
+    const b = GAMES_DATA.find(g => g.id === bId);
+    if (a && b && legends[i]) {
+      const spans = legends[i].querySelectorAll('span');
+      if (spans[0]) spans[0].innerHTML =
+        `<span class="dot dot-alive"></span> <em>${a.name}</em> (${a.year})`;
+      if (spans[1]) spans[1].innerHTML =
+        `<span class="dot dot-dying"></span> <em>${b.name}</em> (${b.year})`;
+    }
+  });
 }
 
 // ==========================================================
@@ -631,7 +663,12 @@ function update() {
 // BOOTSTRAP
 // ==========================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  const games = await loadGameData();
+  GAMES_DATA = games;
+  ALL_GENRES   = [...new Set(games.flatMap(g => g.genres))].sort();
+  ALL_PLATFORMS = [...new Set(games.flatMap(g => g.platforms))].sort();
+
   setupGenreChips();
   setupPlatformChips();
   setupSliders();
