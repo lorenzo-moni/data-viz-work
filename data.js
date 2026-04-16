@@ -1,33 +1,42 @@
-// ==========================================================
-// data.js — loads real CSV data from dataset/output/
-// Requires d3.js to be loaded before this script.
-// Returns a Promise via loadGameData().
-// ==========================================================
-
 function _parseMonthStr(str) {
-  // "Sep-25" → timestamp in ms
   if (!str) return null;
-  const [mon, yr] = str.split('-');
+  const [mon, yr] = str.split("-");
   if (!mon || !yr) return null;
   const year = +yr + (+yr < 50 ? 2000 : 1900);
-  const m = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 }[mon];
+  const m = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11,
+  }[mon];
   if (m === undefined) return null;
   return new Date(year, m, 1).getTime();
 }
 
 function _normalizePlatforms(str) {
   if (!str) return [];
-  return str.split('|').map(p => {
-    p = p.trim();
-    if (p === 'Apple Macintosh') return 'macOS';
-    return p;
-  }).filter(Boolean);
+  return str
+    .split("|")
+    .map((p) => {
+      p = p.trim();
+      if (p === "Apple Macintosh") return "macOS";
+      return p;
+    })
+    .filter(Boolean);
 }
 
 async function loadGameData() {
   const [rawgRows, chartsRows] = await Promise.all([
-    d3.csv('dataset/output/rawg_steam_final.csv'),
-    d3.csv('dataset/output/steamcharts_final.csv'),
+    d3.csv("dataset/output/rawg_steam_final.csv"),
+    d3.csv("dataset/output/steamcharts_final.csv"),
   ]);
 
   // Group steamcharts time series by steam_appid
@@ -45,7 +54,7 @@ async function loadGameData() {
     });
   }
   // Sort each series chronologically
-  seriesByAppId.forEach(s => s.sort((a, b) => a.month - b.month));
+  seriesByAppId.forEach((s) => s.sort((a, b) => a.month - b.month));
 
   const games = [];
   rawgRows.forEach((row, idx) => {
@@ -58,14 +67,16 @@ async function loadGameData() {
     const peakPlayers = Math.max(rawgPeak, chartsPeak, 1);
 
     // Current avg players: most recent month in steamcharts
-    const currentAvg = series.length > 0 ? series[series.length - 1].players : 0;
+    const currentAvg =
+      series.length > 0 ? series[series.length - 1].players : 0;
     const aliveRatio = Math.min(1, Math.max(0, currentAvg / peakPlayers));
 
-    const year = +row.release_year || (row.released ? +row.released.slice(0, 4) : null);
+    const year =
+      +row.release_year || (row.released ? +row.released.slice(0, 4) : null);
     if (!year) return; // skip games without a release year
 
-    const genres = (row.genres || '').split('|').filter(Boolean);
-    if (genres.length === 0) genres.push('Unknown');
+    const genres = (row.genres || "").split("|").filter(Boolean);
+    if (genres.length === 0) genres.push("Unknown");
 
     games.push({
       id: appId || idx + 1,
@@ -81,18 +92,20 @@ async function loadGameData() {
       metacritic: +row.metacritic || 0,
       completion_rate: +row.completion_rate || 0,
       drop_rate: +row.drop_rate || 0,
-      series: series.map(s => ({ month: s.month, players: s.players })),
+      series: series.map((s) => ({ month: s.month, players: s.players })),
       current_players: currentAvg,
     });
   });
 
   // Classify each game into an archetype (used by analysis charts)
-  games.forEach(g => {
+  games.forEach((g) => {
     const isOld = g.year <= 2018;
-    if (g.alive_ratio > 0.15 && isOld)                           g.archetype = 'immortal';
-    else if (g.peak_players > 100000 && g.alive_ratio < 0.08)   g.archetype = 'fading_aaa';
-    else if (g.peak_players < 100000 && g.alive_ratio > 0.12)   g.archetype = 'slow_burn';
-    else                                                          g.archetype = 'mid';
+    if (g.alive_ratio > 0.15 && isOld) g.archetype = "immortal";
+    else if (g.peak_players > 100000 && g.alive_ratio < 0.08)
+      g.archetype = "fading_aaa";
+    else if (g.peak_players < 100000 && g.alive_ratio > 0.12)
+      g.archetype = "slow_burn";
+    else g.archetype = "mid";
   });
 
   console.log(`Loaded ${games.length} games from real dataset`);

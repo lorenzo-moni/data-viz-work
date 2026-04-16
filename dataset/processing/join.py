@@ -101,7 +101,7 @@ print(f"Pass 1 (exact key+year):  {p1['steam_appid'].notna().sum():>6}")
 
 
 # ============================================================
-# 4. PASS 2 — key + year ±1
+# 4. PASS 2 — key + year +- 1
 # ============================================================
 missing_mask = p1["steam_appid"].isna()
 steam_by_key = (
@@ -126,7 +126,7 @@ print(f"Pass 2 (year ±1):         {(p1['match_type'] == 'year_tolerant').sum():
 
 
 # ============================================================
-# 5. PASS 3 — fuzzy (ratio ≥ 95) + year ±1
+# 5. PASS 3 — fuzzy (ratio >= 95) + year +- 1
 # ============================================================
 still_missing = p1["steam_appid"].isna() & p1["key"].str.len().gt(3)
 missing_idx = p1.index[still_missing]
@@ -166,17 +166,16 @@ print(f"Pass 3 (fuzzy ≥95):       {(p1['match_type'] == 'fuzzy').sum():>6}")
 
 
 # ============================================================
-# 6. FILTER TO MATCHED ONLY + attach ALL Steam metadata (SELECT *)
+# 6. FILTER TO MATCHED ONLY
 # ============================================================
 matched = p1[p1["steam_appid"].notna()].copy()
 matched["steam_appid"] = matched["steam_appid"].astype(str)
 
-# Tutte le colonne Steam, deduplicato su appid
+
 steam_meta = steam_pd.drop_duplicates(subset=[STEAM_ID_COL]).copy()
 steam_meta[STEAM_ID_COL] = steam_meta[STEAM_ID_COL].astype(str)
 
-# Rimuovi le helper columns aggiunte per il matching
-# (altrimenti finiscono nel merge come duplicati di "key"/"year")
+
 steam_meta = steam_meta.drop(columns=["key", "year"], errors="ignore")
 
 rawg_steam = matched.merge(
@@ -187,7 +186,7 @@ rawg_steam = matched.merge(
     suffixes=("", "_steam"),
 ).drop(columns=[STEAM_ID_COL], errors="ignore")
 
-# Appiattisci colonne list per CSV
+
 for col in rawg_steam.columns:
     if rawg_steam[col].apply(lambda x: isinstance(x, list)).any():
         rawg_steam[col] = rawg_steam[col].map(
