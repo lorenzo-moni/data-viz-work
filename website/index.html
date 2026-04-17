@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built to Last — Milestone 2 Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<!-- Data Banner -->
+<div class="dummy-banner">
+  <span class="dummy-dot">●</span>
+  <strong>LIVE DATA</strong> · Games and time series loaded from RAWG + Steam Charts dataset.
+</div>
+ 
+<!-- Persistent Topbar -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name"><em>Built</em> to Last</span>
+    </div>
+    <div class="brand-sub">A study of video game longevity · COM-480 · Milestone 2</div>
+  </div>
+  <nav class="topbar-nav">
+    <button class="nav-item active" data-view="main">
+      <span class="nav-num">§ 01</span>
+      <span class="nav-label">The Landscape</span>
+    </button>
+    <button class="nav-item disabled" data-view="sandbox" id="nav-sandbox">
+      <span class="nav-num">§ 02</span>
+      <span class="nav-label">The Sandbox</span>
+      <span class="nav-hint">Select games to unlock</span>
+    </button>
+    <button class="nav-item disabled" data-view="analysis">
+      <span class="nav-num">§ 03</span>
+      <span class="nav-label">Our Reading (Coming Soon)</span>
+    </button>
+  </nav>
+</header>
+
+<!-- View 1: Main Visualization -->
+<main class="view view-main active" id="view-main">
+  <aside class="controls">
+    <div class="control-header">
+      <div class="control-title">Filters</div>
+      <div class="control-sub">refine the landscape</div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Time window</label>
+      <div class="slider-wrap">
+        <input type="range" id="time-slider-start" min="2012" max="2024" value="2012" step="1">
+        <input type="range" id="time-slider-end" min="2012" max="2025" value="2025" step="1">
+        <div class="slider-values">
+          <span id="time-start">2012</span> — <span id="time-end">2025</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Genre</label>
+      <div class="chip-group" id="genre-filters"></div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Minimum rating</label>
+      <div class="slider-wrap">
+        <input type="range" id="rating-slider" min="0" max="5" step="0.1" value="0">
+        <div class="slider-values">
+          <span id="rating-value">0.0</span> / 5.0
+        </div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label">Platform</label>
+      <div class="chip-group" id="platform-filters"></div>
+    </div>
+
+    <div class="control-footer">
+      <span id="visible-count">—</span> <span class="dim">games visible</span>
+    </div>
+  </aside>
+
+  <section class="chart-section">
+    <div class="view-header">
+      <div class="view-number">§ 01 — The Landscape</div>
+      <h1 class="view-title">Some games die. Some don't.</h1>
+      <p class="view-intro">
+        Every dot is a game. The <em>x-axis</em> reflects how long ago it was released within your time window.
+        The <em>y-axis</em> is current average monthly players. Color reads from red (dying) to green (alive).
+        <strong>Click any bubble to add it to your selection</strong> — then open the sandbox to analyze your picks.
+      </p>
+    </div>
+
+    <div class="chart-wrap">
+      <svg id="main-chart"></svg>
+      <div id="tooltip" class="tooltip"></div>
+    </div>
+  </section>
+</main>
+
+<!-- View 2: Sandbox -->
+<main class="view view-sandbox" id="view-sandbox">
+  <div class="view-container">
+    <div class="view-header">
+      <div class="view-number">§ 02 — The Sandbox</div>
+      <h1 class="view-title">Your picks, your axes.</h1>
+      <p class="view-intro">
+        Cluster the games you selected by any pair of dimensions. Compare them side by side.
+        Find out what your favorites actually have in common — or don't.
+      </p>
+    </div>
+
+    <div class="sandbox-panel">
+      <div class="sandbox-axes">
+        <div class="axis-picker">
+          <label>X-axis</label>
+          <select id="sandbox-x">
+            <option value="completion_rate">Completion rate</option>
+            <option value="rating">Rating</option>
+            <option value="year">Release year</option>
+            <option value="survivability">Survivability %</option>
+          </select>
+        </div>
+        <div class="axis-picker">
+          <label>Y-axis</label>
+          <select id="sandbox-y">
+            <option value="alive_ratio">Alive ratio</option>
+            <option value="avg_players">Avg. players</option>
+            <option value="peak_players">Peak players</option>
+          </select>
+        </div>
+        <div class="axis-picker">
+          <label>Color by</label>
+          <select id="sandbox-color">
+            <option value="genre">Primary genre</option>
+            <option value="alive_ratio">Alive ratio</option>
+            <option value="year">Release year</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sandbox-chart-wrap">
+        <svg id="sandbox-chart"></svg>
+        <div class="sandbox-empty" id="sandbox-empty">
+          <div class="empty-icon">◐</div>
+          <div>No games in your selection yet.</div>
+          <div class="dim">Head back to the landscape and click a few bubbles.</div>
+        </div>
+      </div>
+
+      <div class="sandbox-selection-list">
+        <div class="selection-header">
+          <span id="selection-count">0</span> <span class="dim">games in your selection</span>
+          <button class="btn-ghost" id="clear-selection">Clear all</button>
+        </div>
+        <div class="selection-chips" id="selection-chips"></div>
+      </div>
+    </div>
+
+    <div class="view-footer">
+      <button class="btn-back" data-view="main">← Back to the landscape</button>
+      <span class="dim">or</span>
+      <button class="btn-text disabled" data-view="analysis">Read our analysis →</button>
+    </div>
+  </div>
+</main>
+
+
+
+<!-- Flaoting Section Tray -->
+<div class="selection-tray hidden" id="selection-tray">
+  <div class="tray-inner">
+    <div class="tray-text">
+      <strong id="tray-count">0</strong> games selected
+      <div class="dim">Cluster them side by side in the sandbox</div>
+    </div>
+    <div class="tray-chips" id="tray-chips"></div>
+    <button class="btn-primary" id="open-sandbox">Open sandbox →</button>
+  </div>
+</div>
+
+<!-- Game Card -->
+<aside id="game-card" class="game-card hidden">
+  <button id="close-card" aria-label="Close">×</button>
+  <div class="card-header">
+    <div class="card-title" id="card-name">—</div>
+    <div class="card-meta" id="card-meta">—</div>
+  </div>
+  <div class="card-body">
+    <div class="card-stat">
+      <div class="stat-label">Avg / Peak players</div>
+      <div class="stat-value" id="card-players">—</div>
+    </div>
+    <div class="card-stat">
+      <div class="stat-label">Survivability</div>
+      <div class="stat-value" id="card-survival">—</div>
+    </div>
+    <div class="card-stat">
+      <div class="stat-label">Rating</div>
+      <div class="stat-value" id="card-rating">—</div>
+    </div>
+    <div class="card-stat">
+      <div class="stat-label">Alive ratio</div>
+      <div class="stat-value" id="card-alive">—</div>
+    </div>
+    <div class="card-stat wide">
+      <div class="stat-label">Genres</div>
+      <div class="stat-value" id="card-genres">—</div>
+    </div>
+  </div>
+  <div class="card-actions">
+    <button class="btn-primary" id="toggle-selection">+ Add to selection</button>
+  </div>
+</aside>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="/assets/js/data.js"></script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
