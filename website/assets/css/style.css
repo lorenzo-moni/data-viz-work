@@ -911,6 +911,37 @@ input[type="range"]::-moz-range-thumb {
   border-color: var(--accent);
 }
 
+.sandbox-descriptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 28px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.metric-desc {
+  border-left: 2px solid var(--accent);
+  background: var(--bg-lift);
+  padding: 10px 14px;
+  border-radius: 0 2px 2px 0;
+}
+
+.metric-desc .desc-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+}
+
+.metric-desc .desc-body {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
 .sandbox-chart-wrap {
   position: relative;
   min-height: 580px;
@@ -1517,4 +1548,279 @@ input[type="range"]::-moz-range-thumb {
     flex-direction: column;
     align-items: center;
   }
+}
+
+/* ============================================================
+   ANALYSIS VIEW — additional rules
+   ============================================================ */
+
+/* Small multiples grid (Acts 6, 13) */
+.act-multiples {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+.act-multiples.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.genre-mini {
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 10px 10px 6px;
+  transition: border-color 0.2s;
+}
+.genre-mini:hover { border-color: var(--rule-strong); }
+.genre-mini.expanded { grid-column: 1 / -1; border-color: var(--accent); }
+.genre-mini-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+}
+.genre-mini svg { display: block; width: 100%; overflow: visible; }
+
+/* Guided discovery block (High-interactivity acts) */
+.story-guide {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent);
+  background: rgba(230, 163, 86, 0.04);
+  transition: opacity 0.4s;
+}
+.story-guide.done { opacity: 0.35; }
+.guide-eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.guide-instruction {
+  font-size: 14px;
+  color: var(--ink);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+.guide-expected {
+  font-size: 13px;
+  color: var(--ink-dim);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Cohort drilldown side panel (Act 2) */
+.cohort-panel {
+  position: absolute;
+  top: 0; right: 0;
+  width: 260px;
+  background: var(--bg-panel);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 14px;
+  max-height: 360px;
+  overflow-y: auto;
+  z-index: 20;
+}
+.cohort-panel.hidden { display: none; }
+.cohort-panel-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.cohort-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  gap: 8px;
+}
+.cohort-row:hover { color: var(--ink); }
+.cohort-row-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cohort-row-alive { font-family: var(--mono); font-size: 10px; flex-shrink: 0; }
+
+/* Quadrant labels (Acts 4, 8, 12) */
+.quadrant-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  fill: var(--ink-faint);
+  pointer-events: none;
+}
+.quadrant-overlay {
+  fill: transparent;
+  cursor: pointer;
+}
+.quadrant-overlay.active { fill: rgba(230, 163, 86, 0.07); }
+
+/* Gene / Archetype filter chips (Acts 5, 9, 10) */
+.act-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.act-chip {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.act-chip.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Drill-down list (Acts 7, 8) */
+.drill-list {
+  margin-top: 16px;
+  border-top: 1px solid var(--rule);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.drill-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+}
+.drill-row:hover .drill-name { color: var(--ink); }
+.drill-rank { font-family: var(--mono); font-size: 9px; color: var(--ink-faint); width: 18px; flex-shrink: 0; }
+.drill-name { font-size: 13px; color: var(--ink-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drill-alive { font-family: var(--mono); font-size: 10px; color: var(--alive); flex-shrink: 0; }
+
+/* Sort chips header (Act 11) */
+.sort-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.sort-chip {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sort-chip.active { background: var(--bg-lift); color: var(--ink); border-color: var(--rule-strong); }
+
+/* Game row (Acts 2, 11) */
+.game-bar-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 80px 90px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+}
+.game-bar-row:hover .game-bar-name { color: var(--ink); }
+.game-bar-name { font-size: 13px; color: var(--ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-bar-year { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); }
+.game-bar-track { position: relative; height: 4px; background: var(--rule); border-radius: 2px; }
+.game-bar-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: var(--alive); }
+
+/* Mortality index list (Act 15) */
+.mortality-list-header {
+  display: grid;
+  grid-template-columns: 28px 1fr 64px 80px 80px;
+  gap: 10px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--rule-strong);
+  margin-bottom: 4px;
+}
+.mortality-list-header span {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.mortality-list-header span.sort-active { color: var(--accent); }
+.mortality-list { list-style: none; padding: 0; margin: 0; }
+.mortality-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 64px 80px 80px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.mortality-row:hover { background: var(--bg-lift); }
+.mortality-rank { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); }
+.mortality-name { font-size: 13px; color: var(--ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mortality-row:hover .mortality-name { color: var(--ink); }
+.mortality-year { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); }
+.mortality-bar-wrap { height: 4px; background: var(--rule); border-radius: 2px; position: relative; }
+.mortality-bar { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: var(--accent); }
+.mortality-sparkline { display: block; }
+
+/* Toast notification */
+.analysis-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-lift);
+  border: 1px solid var(--rule-strong);
+  padding: 10px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 100;
+}
+.analysis-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Responsive overrides for analysis extras */
+@media (max-width: 1100px) {
+  .act-multiples { grid-template-columns: repeat(2, 1fr); }
+  .act-multiples.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .mortality-list-header,
+  .mortality-row { grid-template-columns: 28px 1fr 64px 80px; }
+  .mortality-sparkline { display: none; }
+}
+@media (max-width: 600px) {
+  .act-multiples { grid-template-columns: 1fr; }
+  .mortality-list-header,
+  .mortality-row { grid-template-columns: 28px 1fr 64px; }
+  .mortality-bar-wrap { display: none; }
 }
