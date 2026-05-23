@@ -16,7 +16,6 @@ import unicodedata
 import pandas as pd
 from rapidfuzz import fuzz, process
 
-
 RAWG_NAME_COL = "name"
 RAWG_DATE_COL = "released"
 STEAM_ID_COL = "appID"
@@ -49,6 +48,22 @@ STEAM_DROP_COLS = [
 # for the fuzzy passes to bridge (e.g. CS:GO → Counter-Strike 2, same appID 730).
 MANUAL_OVERRIDES: dict[str, str] = {
     "Counter-Strike: Global Offensive": "730",
+    "Total War: SHOGUN 2": "34330",
+    "Blasphemous 2": "2114740",
+    "Batman: Arkham City": "200260",
+    "Grand Theft Auto V": "271590",
+    "PlayerUnknown’s Battlegrounds": "578080",
+    "Monster Hunter Wilds": "2246340",
+    "Apex Legends": "1172470",
+    "ARK: Survival Evolved": "346110",
+    "Garry's Mod": "4000",
+    "DayZ": "221100",
+    "7 Days to Die": "251570",
+    "Helldivers 2": "553850",
+    "Anthem": "2656490",
+    "Battlefield 2042": "1517290",
+    "Fall Guys": "1097150",
+    "Destiny 2": "1085660",
 }
 
 EDITION_RE = re.compile(
@@ -122,7 +137,9 @@ def match_rawg_steam(rawg_df: pd.DataFrame, steam_df: pd.DataFrame) -> pd.DataFr
 
     # Pass 1 — exact key+year on still-unmatched rows
     p1 = rawg_df.merge(
-        steam_clean[[STEAM_ID_COL, "key", "year"]].rename(columns={STEAM_ID_COL: "_steam_p1"}),
+        steam_clean[[STEAM_ID_COL, "key", "year"]].rename(
+            columns={STEAM_ID_COL: "_steam_p1"}
+        ),
         on=["key", "year"],
         how="left",
     )

@@ -9,9 +9,9 @@ let ALL_PLATFORMS = [];
 
 const state = {
   view: "main",
-  yearRange: [2018, 2021],
+  yearRange: [2012, 2018],
   genres: new Set(),
-  minRating: 0,
+  minRating: 2.5,
   platforms: new Set(),
   selectedIds: new Set(),
   hoveredId: null,

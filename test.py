@@ -32,4 +32,4 @@ def fetch_steamcharts(app_id: int, name: str) -> pd.DataFrame | None:
         return None
 
 
-print(fetch_steamcharts(34330, "TUMA"))
+print(fetch_steamcharts(578080, "TUMA"))

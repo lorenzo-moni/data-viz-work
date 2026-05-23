@@ -1,5 +1,12 @@
 function parseMonthStr(str) {
   if (!str) return null;
+  // ISO format: YYYY-MM-DD
+  if (/^\d{4}-\d{2}/.test(str)) {
+    const [year, month] = str.split("-");
+    const ts = new Date(+year, +month - 1, 1).getTime();
+    return isNaN(ts) ? null : ts;
+  }
+  // Legacy format: Mon-YY
   const [mon, yr] = str.split("-");
   if (!mon || !yr) return null;
   const year = +yr + (+yr < 50 ? 2000 : 1900);
@@ -77,23 +84,10 @@ async function loadGameData() {
     const appId = +row.steam_appid;
     const series = seriesByAppId.get(appId) || [];
 
-    // alive_ratio: RAWG engagement definition (from notebooks/eda_immortal_games.ipynb)
-    // engagement_total = status_playing + status_beaten + status_dropped
-    // alive_ratio = status_playing / engagement_total
-    const statusPlaying = Math.max(0, +row.status_playing || 0);
-    const statusBeaten = Math.max(0, +row.status_beaten || 0);
-    const statusDropped = Math.max(0, +row.status_dropped || 0);
-    const engagementTotal = statusPlaying + statusBeaten + statusDropped;
-    const alive_ratio =
-      engagementTotal > 0 ? statusPlaying / engagementTotal : 0;
-
-    // Steam-derived peak (still used for slow-burn / fading-AAA classification and series charts)
+    // Steam-derived peak: all-time max monthly peak
     const peakPlayers = series.reduce((max, s) => Math.max(max, s.peak), 0);
-
-    // Current avg players from steamcharts (used for sparklines / Act 13)
     const currentPlayers =
       series.length > 0 ? series[series.length - 1].players : 0;
-
     const averagePlayers =
       series.length > 0
         ? Math.round(
@@ -113,15 +107,11 @@ async function loadGameData() {
     const genres = (row.genres || "").split("|").filter(Boolean);
     if (genres.length === 0) genres.push("Unknown");
 
-    // Parse Steam categories for game-type classification.
-
     const categories = parseCategories(row.categories || "");
-
     const hasSinglePlayer = categories.some((c) => c === "Single-player");
     const hasOnline = categories.some(
       (c) => c.includes("Online") || c === "Multi-player",
     );
-
     const isMMO = genres.includes("Massively Multiplayer");
     const isSports = genres.includes("Sports");
     const isRacing = genres.includes("Racing");
@@ -134,6 +124,22 @@ async function loadGameData() {
       game_type = "hybrid";
     } else {
       game_type = "story";
+    }
+
+    // RAWG engagement fields (kept for filtering in Acts 3, 7, 11, 15)
+    const statusPlaying = Math.max(0, +row.status_playing || 0);
+    const statusBeaten = Math.max(0, +row.status_beaten || 0);
+    const statusDropped = Math.max(0, +row.status_dropped || 0);
+    const engagementTotal = statusPlaying + statusBeaten + statusDropped;
+
+    // alive_ratio: source depends on game type.
+    // pure_online → SteamCharts current/peak ratio (RAWG "beaten/dropped" is meaningless for live-service games)
+    // story/hybrid → RAWG engagement ratio (status_playing / engagement_total)
+    let alive_ratio;
+    if (game_type === "pure_online") {
+      alive_ratio = peakPlayers > 0 ? currentPlayers / peakPlayers : 0;
+    } else {
+      alive_ratio = engagementTotal > 0 ? statusPlaying / engagementTotal : 0;
     }
 
     games.push({
@@ -175,11 +181,14 @@ async function loadGameData() {
     });
   });
 
-  // Classify each game into an archetype — aligned with notebook thresholds
-  // (eda_immortal_games.ipynb cell 30: alive_ratio > 0.10, year <= 2018, engagement >= 30)
+  // Classify each game into an archetype.
+  // For pure_online games alive_ratio = current/peak (SteamCharts), so hasEngagement is skipped.
   games.forEach((g) => {
     const isOld = g.year <= 2018;
-    const hasEngagement = g.engagement_total >= 30;
+    const hasEngagement =
+      g.game_type === "pure_online"
+        ? g.peak_players > 0
+        : g.engagement_total >= 30;
     if (g.alive_ratio > 0.1 && isOld && hasEngagement) g.archetype = "immortal";
     else if (g.peak_players > 100000 && g.alive_ratio < 0.05)
       g.archetype = "fading_aaa";

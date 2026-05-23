@@ -13,6 +13,7 @@ Exported:
 import os
 import time
 from io import StringIO
+import random
 
 import pandas as pd
 from curl_cffi import requests
@@ -59,9 +60,17 @@ def scrape_to_disk(games: dict, output_path: str, delay: float = 4) -> int:
     Number of new rows written in this run.
     """
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+    failed_path = output_path.replace(".csv", "_failed.csv")
 
     safely_done: set[int] = set()
+    failed_ids: set[int] = set()
     header_written = False
+
+    # Load permanently failed IDs from previous runs
+    if os.path.exists(failed_path):
+        failed_df = pd.read_csv(failed_path)
+        failed_ids = set(failed_df["app_id"].dropna().astype(int).tolist())
+        print(f"[steamcharts] Skipping {len(failed_ids)} permanently failed app_ids")
 
     if os.path.exists(output_path):
         try:
@@ -69,7 +78,7 @@ def scrape_to_disk(games: dict, output_path: str, delay: float = 4) -> int:
             all_ids = existing["app_id"].dropna().astype(int).tolist()
             if all_ids:
                 last_id = all_ids[-1]
-                # Drop the last game's rows because it they may be truncated
+                # Drop the last game's rows because they may be truncated
                 existing_clean = existing[existing["app_id"].astype(int) != last_id]
                 existing_clean.to_csv(output_path, index=False)
                 safely_done = set(
@@ -83,13 +92,17 @@ def scrape_to_disk(games: dict, output_path: str, delay: float = 4) -> int:
         except Exception:
             pass
 
-    remaining = {k: v for k, v in games.items() if int(k) not in safely_done}
+    remaining = {
+        k: v
+        for k, v in sorted(games.items(), key=lambda x: x[1][1], reverse=True)
+        if int(k) not in safely_done and int(k) not in failed_ids
+    }
     print(f"[steamcharts] {len(remaining)} games to scrape: {output_path}")
 
     rows_written = 0
     fetched = 0
 
-    for app_id, name in remaining.items():
+    for app_id, (name, _) in remaining.items():
         print(f"  ({len(safely_done) + fetched + 1}/{len(games)}) {name} {app_id}...")
         df_game = fetch_steamcharts(int(app_id), name)
         if df_game is not None:
@@ -102,7 +115,14 @@ def scrape_to_disk(games: dict, output_path: str, delay: float = 4) -> int:
             rows_written += len(df_game)
             header_written = True
             fetched += 1
-        time.sleep(delay)
+        else:
+            pd.DataFrame({"app_id": [int(app_id)], "name": [name]}).to_csv(
+                failed_path,
+                mode="a",
+                index=False,
+                header=not os.path.exists(failed_path),
+            )
+        time.sleep(delay + random.uniform(0, 2))
 
     print(
         f"[steamcharts] Done: {fetched} new games fetched, {rows_written} new rows written"

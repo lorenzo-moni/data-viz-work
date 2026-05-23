@@ -342,12 +342,23 @@ const ts = {
   g: null,
   xScale: null,
   yScale: null,
+  xCurrent: null,
+  yCurrent: null,
   zoom: null,
   width: 0,
   height: 0,
   margin: { top: 10, right: 24, bottom: 28, left: 56 },
   initialized: false,
+  selected: [],
+  allMonths: [],
+  hoverGroup: null,
+  hoverLine: null,
+  hoverRect: null,
+  tooltip: null,
 };
+
+const bisectMonth = d3.bisector((d) => d.month).left;
+const bisectMs = d3.bisector((d) => d).left;
 
 function initTimeSeries() {
   const svg = d3.select("#sandbox-ts");
@@ -377,7 +388,34 @@ function initTimeSeries() {
     .attr("width", ts.width)
     .attr("height", ts.height);
 
+  ts.g.append("g").attr("class", "ts-areas").attr("clip-path", "url(#ts-clip)");
+  ts.g.append("g").attr("class", "ts-peaks").attr("clip-path", "url(#ts-clip)");
   ts.g.append("g").attr("class", "ts-lines").attr("clip-path", "url(#ts-clip)");
+
+  ts.hoverGroup = ts.g.append("g")
+    .attr("class", "ts-hover")
+    .attr("pointer-events", "none")
+    .attr("clip-path", "url(#ts-clip)");
+  ts.hoverLine = ts.hoverGroup.append("line")
+    .attr("class", "ts-hover-line")
+    .attr("y1", 0)
+    .attr("y2", ts.height)
+    .attr("opacity", 0);
+
+  ts.hoverRect = ts.g.append("rect")
+    .attr("class", "ts-hover-overlay")
+    .attr("width", ts.width)
+    .attr("height", ts.height)
+    .attr("fill", "none")
+    .attr("pointer-events", "all")
+    .on("mousemove", onTsHover)
+    .on("mouseleave", onTsHoverLeave);
+
+  const wrap = svg.node().closest(".ts-chart-wrap");
+  d3.select(wrap).selectAll("#ts-tooltip").remove();
+  ts.tooltip = d3.select(wrap).append("div")
+    .attr("id", "ts-tooltip")
+    .attr("class", "tooltip ts-hover-tooltip");
 
   ts.zoom = d3.zoom()
     .scaleExtent([1, 40])
@@ -402,12 +440,109 @@ function initTimeSeries() {
   });
 }
 
+function onTsHoverLeave() {
+  if (ts.hoverLine) ts.hoverLine.attr("opacity", 0);
+  if (ts.tooltip) ts.tooltip.classed("visible", false);
+  if (ts.g) {
+    ts.g.selectAll("path.ts-line, path.ts-area, path.ts-peak")
+      .classed("dimmed", false)
+      .classed("focused", false);
+  }
+}
+
+function onTsHover(event) {
+  if (!ts.xCurrent || !ts.yCurrent || !ts.selected || ts.selected.length === 0) return;
+  if (ts.svg.classed("is-dragging")) { onTsHoverLeave(); return; }
+
+  const [mx, my] = d3.pointer(event, ts.g.node());
+  const t = ts.xCurrent.invert(mx).getTime();
+
+  // Collect nearest data point per game
+  const entries = [];
+  ts.selected.forEach((game) => {
+    const s = game.series;
+    if (!s || s.length === 0) return;
+    let i = bisectMonth(s, t);
+    let pt;
+    if (i === 0) {
+      pt = s[0];
+    } else if (i >= s.length) {
+      pt = s[s.length - 1];
+    } else {
+      const before = s[i - 1];
+      const after = s[i];
+      pt = (t - before.month) < (after.month - t) ? before : after;
+    }
+    if (!pt || pt.players === 0) return;
+    entries.push({ game, pt });
+  });
+
+  if (entries.length === 0) { onTsHoverLeave(); return; }
+
+  // Snap the vertical line to the globally nearest month
+  let si = bisectMs(ts.allMonths, t);
+  if (si >= ts.allMonths.length) si = ts.allMonths.length - 1;
+  if (si > 0) {
+    const prev = ts.allMonths[si - 1];
+    const curr = ts.allMonths[si];
+    si = (t - prev) < (curr - t) ? si - 1 : si;
+  }
+  const snapMonth = ts.allMonths[si];
+  const snapX = ts.xCurrent(new Date(snapMonth));
+
+  ts.hoverLine.attr("x1", snapX).attr("x2", snapX).attr("opacity", 0.7);
+
+  // Sort by avg players descending
+  entries.sort((a, b) => b.pt.players - a.pt.players);
+
+  // Highlight the line closest in Y to the mouse
+  let closestId = null;
+  let minDist = Infinity;
+  entries.forEach(({ game, pt }) => {
+    const dist = Math.abs(my - ts.yCurrent(Math.max(1, pt.players)));
+    if (dist < minDist) { minDist = dist; closestId = game.id; }
+  });
+  ts.g.selectAll("path.ts-line, path.ts-area, path.ts-peak")
+    .classed("dimmed", (d) => d.id !== closestId)
+    .classed("focused", (d) => d.id === closestId);
+
+  // Build tooltip HTML
+  const monthLabel = d3.timeFormat("%b %Y")(new Date(snapMonth));
+  let html = `<div class="tooltip-title">${monthLabel}</div>`;
+  entries.forEach(({ game, pt }) => {
+    const color = colorForGame(game.id);
+    const avg = fmtPlayers(pt.players);
+    const peak = fmtPlayers(pt.peak || pt.players);
+    html += `<div class="ts-hover-row">
+      <span class="chip-swatch" style="background:${color}"></span>
+      <span class="ts-hover-name">${game.name}</span>
+      <span class="ts-hover-vals">${avg}<em> / ${peak}</em></span>
+    </div>`;
+  });
+  ts.tooltip.html(html);
+
+  // Position with edge flip
+  const wrap = ts.svg.node().closest(".ts-chart-wrap");
+  const wrapRect = wrap.getBoundingClientRect();
+  const ttNode = ts.tooltip.node();
+  const ttW = ttNode.offsetWidth || 240;
+  const ttH = ttNode.offsetHeight || 100;
+  const gap = 14;
+  const px = event.clientX - wrapRect.left;
+  const py = event.clientY - wrapRect.top;
+  const left = (px + gap + ttW > wrapRect.width) ? px - ttW - gap : px + gap;
+  const top = (py + gap + ttH > wrapRect.height) ? py - ttH - gap : py + gap;
+  ts.tooltip.style("left", left + "px").style("top", top + "px").classed("visible", true);
+}
+
 function onTsZoom(event) {
   if (!ts.xScale || !ts.yScale) return;
   const t = event.transform;
   ts.svg.classed("is-zoomed", t.k > 1);
   const xz = t.rescaleX(ts.xScale);
   const yz = t.rescaleY(ts.yScale);
+  ts.xCurrent = xz;
+  ts.yCurrent = yz;
 
   ts.g.select(".axis-x").call(
     d3.axisBottom(xz).ticks(6).tickFormat(d3.timeFormat("%Y")),
@@ -425,8 +560,22 @@ function onTsZoom(event) {
     .defined((d) => d.players > 0)
     .curve(d3.curveMonotoneX);
 
-  ts.g.select(".ts-lines").selectAll("path.ts-line")
-    .attr("d", (d) => line(d.series));
+  const area = d3.area()
+    .x((d) => xz(new Date(d.month)))
+    .y0((d) => yz(Math.max(1, d.players)))
+    .y1((d) => yz(Math.max(1, d.peak || d.players)))
+    .defined((d) => d.players > 0)
+    .curve(d3.curveMonotoneX);
+
+  const linePeak = d3.line()
+    .x((d) => xz(new Date(d.month)))
+    .y((d) => yz(Math.max(1, d.peak || d.players)))
+    .defined((d) => d.players > 0)
+    .curve(d3.curveMonotoneX);
+
+  ts.g.select(".ts-areas").selectAll("path.ts-area").attr("d", (d) => area(d.series));
+  ts.g.select(".ts-peaks").selectAll("path.ts-peak").attr("d", (d) => linePeak(d.series));
+  ts.g.select(".ts-lines").selectAll("path.ts-line").attr("d", (d) => line(d.series));
 }
 
 function renderTimeSeries() {
@@ -437,25 +586,32 @@ function renderTimeSeries() {
     .map((id) => GAMES_DATA.find((g) => g.id === id))
     .filter((g) => g && g.series && g.series.length > 0);
 
+  ts.selected = selected;
   d3.select("#ts-empty").classed("hidden", selected.length > 0);
   d3.select("#sandbox-ts").style("opacity", selected.length > 0 ? 1 : 0);
   if (selected.length === 0) {
     ts.g.select(".ts-lines").selectAll("path").remove();
+    onTsHoverLeave();
     return;
   }
 
   const allPoints = selected.flatMap((g) => g.series);
+  ts.allMonths = [...new Set(allPoints.map((d) => d.month))].sort((a, b) => a - b);
   ts.xScale = d3
     .scaleTime()
     .domain(d3.extent(allPoints, (d) => new Date(d.month)))
     .range([0, ts.width]);
 
-  const maxPlayers = d3.max(allPoints, (d) => d.players) || 10;
+  const maxPlayers = d3.max(allPoints, (d) => Math.max(d.players, d.peak || 0)) || 10;
   ts.yScale = d3
     .scaleLog()
     .domain([1, maxPlayers * 1.3])
     .range([ts.height, 0])
     .clamp(true);
+
+  ts.xCurrent = ts.xScale;
+  ts.yCurrent = ts.yScale;
+  onTsHoverLeave();
 
   ts.g
     .select(".axis-x")
@@ -484,6 +640,41 @@ function renderTimeSeries() {
     .defined((d) => d.players > 0)
     .curve(d3.curveMonotoneX);
 
+  const area = d3
+    .area()
+    .x((d) => ts.xScale(new Date(d.month)))
+    .y0((d) => ts.yScale(Math.max(1, d.players)))
+    .y1((d) => ts.yScale(Math.max(1, d.peak || d.players)))
+    .defined((d) => d.players > 0)
+    .curve(d3.curveMonotoneX);
+
+  const linePeak = d3
+    .line()
+    .x((d) => ts.xScale(new Date(d.month)))
+    .y((d) => ts.yScale(Math.max(1, d.peak || d.players)))
+    .defined((d) => d.players > 0)
+    .curve(d3.curveMonotoneX);
+
+  const areas = ts.g.select(".ts-areas").selectAll("path.ts-area").data(selected, (d) => d.id);
+  areas.exit().remove();
+  areas.enter().append("path").attr("class", "ts-area").attr("stroke", "none")
+    .merge(areas)
+    .attr("fill", (d) => colorForGame(d.id))
+    .attr("fill-opacity", 0.12)
+    .transition().duration(500)
+    .attr("d", (d) => area(d.series));
+
+  const peaks = ts.g.select(".ts-peaks").selectAll("path.ts-peak").data(selected, (d) => d.id);
+  peaks.exit().remove();
+  peaks.enter().append("path").attr("class", "ts-peak").attr("fill", "none")
+    .merge(peaks)
+    .attr("stroke", (d) => colorForGame(d.id))
+    .attr("stroke-width", 1)
+    .attr("stroke-dasharray", "3 3")
+    .attr("stroke-opacity", 0.55)
+    .transition().duration(500)
+    .attr("d", (d) => linePeak(d.series));
+
   const lines = ts.g
     .select(".ts-lines")
     .selectAll("path.ts-line")
@@ -498,17 +689,9 @@ function renderTimeSeries() {
     .attr("stroke", (d) => colorForGame(d.id))
     .merge(lines)
     .attr("stroke", (d) => colorForGame(d.id))
-    .on("mouseover", function (_event, d) {
-      ts.g.selectAll("path.ts-line").classed("dimmed", (o) => o.id !== d.id);
-      d3.select(this).classed("focused", true).classed("dimmed", false);
-    })
-    .on("mouseout", function () {
-      ts.g
-        .selectAll("path.ts-line")
-        .classed("dimmed", false)
-        .classed("focused", false);
-    })
     .transition()
     .duration(500)
     .attr("d", (d) => line(d.series));
+
+  if (ts.hoverRect) ts.hoverRect.raise();
 }

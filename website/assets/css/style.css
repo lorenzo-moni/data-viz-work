@@ -610,6 +610,47 @@ input[type="range"]::-moz-range-thumb {
   letter-spacing: 0.08em;
 }
 
+/* Timeseries hover crosshair */
+.ts-hover-line {
+  stroke: var(--ink-dim);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.ts-hover-tooltip {
+  max-height: 50vh;
+  overflow-y: auto;
+  min-width: 220px;
+}
+
+.ts-hover-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+.ts-hover-name {
+  flex: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ts-hover-vals {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ts-hover-vals em {
+  color: var(--ink-dim);
+  font-style: normal;
+}
+
 /* Game Card (floating on main view) */
 .game-card {
   position: fixed;
