@@ -23,6 +23,7 @@ function switchView(targetView) {
     flashSandboxNav();
     return;
   }
+  if (document.fullscreenElement) document.exitFullscreen();
   state.view = targetView;
 
   d3.selectAll(".view").classed("active", false);

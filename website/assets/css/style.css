@@ -1898,9 +1898,10 @@ input[type="range"]::-moz-range-thumb {
   overflow: hidden;
 }
 
-/* Landscape: reserve right side for filter overlay */
+/* Landscape: reserve right side for filter overlay, top for selection tray */
 .chart-wrap:fullscreen {
   padding-right: 348px;
+  padding-top: 90px;
 }
 
 .chart-wrap:fullscreen #main-chart,
@@ -1929,4 +1930,16 @@ input[type="range"]::-moz-range-thumb {
   padding: 28px 20px;
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
   z-index: 10;
+}
+
+/* Game card: shift left of the 300px controls panel */
+.chart-wrap.is-fullscreen #game-card {
+  right: 340px;
+}
+
+/* Selection tray: top of the chart area in fullscreen, centered over chart (not panel) */
+.chart-wrap.is-fullscreen #selection-tray {
+  bottom: auto;
+  top: 16px;
+  left: calc((100vw - 300px) / 2);
 }

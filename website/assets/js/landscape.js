@@ -205,11 +205,13 @@ function renderChart(games) {
 const tooltip = d3.select("#tooltip");
 
 function onHover(event, d) {
-  const [mx, my] = d3.pointer(event, document.querySelector(".chart-wrap"));
+  const wrap = document.querySelector(".chart-wrap");
+  const [mx, my] = d3.pointer(event, wrap);
+
+  // Set content first so offsetWidth/Height are accurate
   tooltip
     .classed("visible", true)
-    .style("left", mx + 16 + "px")
-    .style("top", my + 16 + "px").html(`
+    .html(`
       <div class="tooltip-title">${d.name}</div>
       <div class="tooltip-row"><span>Released</span><span>${d.year}</span></div>
       <div class="tooltip-row"><span>Avg players</span><span>${fmtPlayers(d.avg_players)}</span></div>
@@ -217,6 +219,14 @@ function onHover(event, d) {
       <div class="tooltip-row"><span>Rating</span><span>${d.rating.toFixed(2)}</span></div>
       <div class="tooltip-hint">click to ${state.selectedIds.has(d.id) ? "deselect" : "select"}</div>
     `);
+
+  const gap = 12;
+  const ttW = tooltip.node().offsetWidth;
+  const ttH = tooltip.node().offsetHeight;
+  const left = (mx + gap + ttW > wrap.offsetWidth)  ? mx - ttW - gap : mx + gap;
+  const top  = (my + gap + ttH > wrap.offsetHeight) ? my - ttH - gap : my + gap;
+
+  tooltip.style("left", left + "px").style("top", top + "px");
 }
 
 function onHoverOut() {
