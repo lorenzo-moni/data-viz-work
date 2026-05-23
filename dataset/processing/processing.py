@@ -53,6 +53,7 @@ def run():
         .drop_duplicates(subset=["steam_appid"])
         .assign(appid_int=lambda d: pd.to_numeric(d["steam_appid"], errors="coerce"))
         .dropna(subset=["appid_int"])
+        .sort_values("ratings_count", ascending=False)
         .set_index("appid_int")["name"]
         .rename(index=int)
         .to_dict()

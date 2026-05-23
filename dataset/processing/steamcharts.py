@@ -15,30 +15,14 @@ import time
 from io import StringIO
 
 import pandas as pd
-import requests
-import random
-
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1",
-]
+from curl_cffi import requests
 
 
 def fetch_steamcharts(app_id: int, name: str) -> pd.DataFrame | None:
     """Fetch monthly player count history for a single game"""
     url = f"https://steamcharts.com/app/{app_id}"
-    headers = {
-        "User-Agent": random.choice(USER_AGENTS),
-    }
     try:
-        r = requests.get(url, headers=headers, timeout=15)
+        r = requests.get(url, impersonate="chrome136", timeout=15)
         if r.status_code != 200:
             print(f"{name}: HTTP {r.status_code}")
             return None
@@ -106,7 +90,7 @@ def scrape_to_disk(games: dict, output_path: str, delay: float = 4) -> int:
     fetched = 0
 
     for app_id, name in remaining.items():
-        print(f"  ({len(safely_done) + fetched + 1}/{len(games)}) {name}...")
+        print(f"  ({len(safely_done) + fetched + 1}/{len(games)}) {name} {app_id}...")
         df_game = fetch_steamcharts(int(app_id), name)
         if df_game is not None:
             df_game.to_csv(
