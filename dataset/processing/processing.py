@@ -62,7 +62,7 @@ def run():
     games_dict = {int(k): v for k, v in games_dict.items()}
 
     # Scrape game by game, append immediately to a temp CSV
-    scrape_to_disk(games_dict, TMP_STEAMCHARTS, 20)
+    scrape_to_disk(games_dict, TMP_STEAMCHARTS, 30)
     sc_df = build_timeseries(TMP_STEAMCHARTS)
 
     # Step 4: Final intersection to keep only games in all three sources
