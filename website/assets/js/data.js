@@ -75,6 +75,9 @@ async function loadGameData() {
       +row.release_year || (row.released ? +row.released.slice(0, 4) : null);
     if (!year) return; // skip games without a release year
 
+    const parsedDate = new Date(row.released || "");
+    const release_month = isNaN(parsedDate.getTime()) ? 5 : parsedDate.getMonth();
+
     const genres = (row.genres || "").split("|").filter(Boolean);
     if (genres.length === 0) genres.push("Unknown");
 
@@ -82,6 +85,7 @@ async function loadGameData() {
       id: appId || idx + 1,
       name: row.name || `Game ${idx + 1}`,
       year,
+      release_month,
       peak_players: peakPlayers,
       avg_players: currentAvg,
       alive_ratio: aliveRatio,
@@ -92,6 +96,10 @@ async function loadGameData() {
       metacritic: +row.metacritic || 0,
       completion_rate: +row.completion_rate || 0,
       drop_rate: +row.drop_rate || 0,
+      youtube_count: +row.youtube_count || 0,
+      rating_delta: +row.rating_delta || 0,
+      price: +row.price || 0,
+      release_year: year,
       series: series.map((s) => ({ month: s.month, players: s.players })),
       current_players: currentAvg,
     });

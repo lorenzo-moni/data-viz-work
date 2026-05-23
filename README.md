@@ -1,11 +1,28 @@
-# Built to Last — Milestone 2 Prototype
+# Project of Data Visualization (COM-480)
+
+| Student's name                | SCIPER |
+| ----------------------------- | ------ |
+| Lorenzo Moni                  | 416074 |
+| Barozet Golbery Julien Pierre | 361312 |
+| Louis James Vasseur           | 362239 |
+
+[Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
+
+## Milestone 1 (20th March, 5pm)
+
+Milestone 1 Report: [PDF Report](milestones/milestone-1/milestone-1.pdf)
+
+## Milestone 2 (17th April, 5pm)
+
+Milestone 2 Report: [PDF Report](milestones/milestone-2/milestone-2.pdf)
+
+Website Prototype: [Website URL](https://com-480-data-visualization.github.io/mobava/)
+
+## Milestone 3 (29th May, 5pm)
+
+# Built to Last: Milestone 2 Prototype
 
 Static single-page app prototype built with D3.js v7. Three views, view-transition navigation, obvious dummy data.
-
-## Deliverables:
-
-- Report: [TODO]
-- Website URL: [TODO]
 
 ## Getting the dataset
 
@@ -19,7 +36,7 @@ In particular, the pipeline to obtain the final dataset is the following:
 4. Scrape Steam Charts to Time series data for each game.
 5. Store games that have both RAWG entry and Time series entry.
 
-Since the final dataset contains [TODO] games the scraping procedure can take up to a few hours, thus we advice to use the dataset provided in the dataset/output folder for evaluation.
+We advice to use the already provided dataset in the website/data folder for evaluation.
 
 ## Running locally
 
@@ -30,13 +47,13 @@ cd website
 python3 -m http.server 8000
 ```
 
-And by visiting the webpage htpp://localhost:8000, or by visualizing the live version on [TODO].
+And by visiting the webpage htpp://localhost:8000, or by visualizing the live version [here](https://com-480-data-visualization.github.io/mobava/).
 
 ## Architecture
 
 Single-page app with **three main views**, one active at a time:
 
-1. View 1 - Main (default): filters and bubble chart. Possibility to click a bubble and add it to selection
+1. View 1 - Main: filters and bubble chart. Possibility to click a bubble and add it to selection
 2. View 2 - Sandbox: can be open by clicking on "Open sandbox". It shows clusters with the selected games.
 3. View 3 - Analytics: our reading on the data.
 

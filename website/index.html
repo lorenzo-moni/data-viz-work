@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Built to Last — Milestone 2 Prototype</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
@@ -34,9 +34,9 @@
       <span class="nav-label">The Sandbox</span>
       <span class="nav-hint">Select games to unlock</span>
     </button>
-    <button class="nav-item disabled" data-view="analysis">
+    <button class="nav-item" data-view="analysis">
       <span class="nav-num">§ 03</span>
-      <span class="nav-label">Our Reading (Coming Soon)</span>
+      <span class="nav-label">Our Reading</span>
     </button>
   </nav>
 </header>
@@ -47,6 +47,15 @@
     <div class="control-header">
       <div class="control-title">Filters</div>
       <div class="control-sub">refine the landscape</div>
+    </div>
+
+    <div class="control-group search-group">
+      <label class="control-label">Search</label>
+      <div class="search-wrap">
+        <input type="text" class="search-input" placeholder="Type a game name…" autocomplete="off">
+        <button class="search-clear hidden" aria-label="Clear search" type="button">×</button>
+        <div class="search-results hidden"></div>
+      </div>
     </div>
 
     <div class="control-group">
@@ -88,11 +97,9 @@
   <section class="chart-section">
     <div class="view-header">
       <div class="view-number">§ 01 — The Landscape</div>
-      <h1 class="view-title">Some games die. Some don't.</h1>
       <p class="view-intro">
-        Every dot is a game. The <em>x-axis</em> reflects how long ago it was released within your time window.
-        The <em>y-axis</em> is current average monthly players. Color reads from red (dying) to green (alive).
-        <strong>Click any bubble to add it to your selection</strong> — then open the sandbox to analyze your picks.
+        Every dot is a game. Color reads from red (games less active over time) to green (games more active over time).
+        <strong>Click any bubble to add it to your selection</strong> for the sandbox where you will be able to analyze your picks.
       </p>
     </div>
 
@@ -108,14 +115,21 @@
   <div class="view-container">
     <div class="view-header">
       <div class="view-number">§ 02 — The Sandbox</div>
-      <h1 class="view-title">Your picks, your axes.</h1>
       <p class="view-intro">
-        Cluster the games you selected by any pair of dimensions. Compare them side by side.
-        Find out what your favorites actually have in common — or don't.
+        Visalize your selected games using any pair of dimensions using the dropdown menus below.
       </p>
     </div>
 
     <div class="sandbox-panel">
+      <div class="control-group search-group">
+        <label class="control-label">Search</label>
+        <div class="search-wrap">
+          <input type="text" class="search-input" placeholder="Type a game name…" autocomplete="off">
+          <button class="search-clear hidden" aria-label="Clear search" type="button">×</button>
+          <div class="search-results hidden"></div>
+        </div>
+      </div>
+
       <div class="sandbox-axes">
         <div class="axis-picker">
           <label>X-axis</label>
@@ -160,17 +174,208 @@
         </div>
         <div class="selection-chips" id="selection-chips"></div>
       </div>
+
+      <div class="sandbox-timeseries">
+        <div class="ts-header">
+          <div class="ts-title">Player history</div>
+          <div class="ts-sub">monthly average players · log scale</div>
+        </div>
+        <div class="ts-chart-wrap">
+          <svg id="sandbox-ts"></svg>
+          <div class="ts-empty" id="ts-empty">
+            <div class="dim">Select games to see how their player bases evolved.</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="view-footer">
       <button class="btn-back" data-view="main">← Back to the landscape</button>
       <span class="dim">or</span>
-      <button class="btn-text disabled" data-view="analysis">Read our analysis →</button>
+      <button class="btn-text" data-view="analysis">Read our analysis →</button>
     </div>
   </div>
 </main>
 
 
+
+<!-- View 3: Our Reading — Static Analysis -->
+<main class="view view-analysis" id="view-analysis">
+  <div class="view-container">
+    <div class="view-header">
+      <div class="view-number">§ 03 — Our Reading</div>
+      <h1 class="view-title">The Cemetery<br><em>&amp; the Survivors</em></h1>
+      <p class="view-intro">
+        Of 6,425 games tracked, most are already silent.
+        We measured who survived, and why — then left the dataset open for you to challenge our reading.
+      </p>
+    </div>
+
+    <!-- Hero: Three numbers -->
+    <section class="story-act act-hero" id="act-hero">
+      <div class="story-prose">
+        <p class="story-lead">The median game keeps just <strong class="hero-highlight">4%</strong> of its peak audience alive today. Half haven't been meaningfully played in months. Death is not the exception — it is the rule.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="hero-stat-group">
+          <div class="hero-stat">
+            <span class="hero-num" style="color:var(--dying)">4%</span>
+            <span class="hero-label">median alive ratio</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-num">9.1%</span>
+            <span class="hero-label">median completion rate</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-num">6.6%</span>
+            <span class="hero-label">median drop rate</span>
+          </div>
+        </div>
+        <div class="story-chart" id="act1-chart"></div>
+        <p class="story-caption">Distribution of alive ratio across all games. The long tail to the right is vanishingly rare — only 348 titles (5%) remain above 20%.</p>
+      </div>
+    </section>
+
+    <!-- Act 2: Four Archetypes -->
+    <section class="story-act" id="act-archetypes">
+      <div class="story-prose">
+        <div class="act-label">§ The Four Archetypes</div>
+        <h2 class="act-title">Four Ways to Survive (or Die)</h2>
+        <p>We sliced every game along two axes: peak audience size and current vitality. Four corners emerge — and each tells a different story about what it means to outlast a launch window.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act2-chart"></div>
+        <div class="case-cards" id="act2-cards"></div>
+        <p class="story-caption">Each point is a game. X: peak concurrent players (log scale). Y: alive ratio today. Color by archetype: <span class="legend-tag immortal">Immortal</span> <span class="legend-tag slow-burn">Slow Burn</span> <span class="legend-tag fading-aaa">Fading AAA</span> <span class="legend-tag mid">Mid</span></p>
+      </div>
+    </section>
+
+    <!-- Act 3: DNA of Immortality -->
+    <section class="story-act" id="act-dna">
+      <div class="story-prose">
+        <div class="act-label">§ Tag Signature</div>
+        <h2 class="act-title">The DNA of Immortality</h2>
+        <p>We compared the tag fingerprint of immortals (pre-2018, alive ratio > 10%) against mortals (alive ratio ≤ 3%). Eight tags rise; two fall — and they tell a coherent story.</p>
+        <p class="story-thesis"><em>"Immortals are open-ended, not finished."</em> Worlds to build and mod, not shooters to complete.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act3-chart"></div>
+        <p class="story-caption">Percentage-point difference in tag prevalence: immortals vs mortals. Positive = more common among survivors.</p>
+      </div>
+    </section>
+
+    <!-- Act 4: Genre Battlefield -->
+    <section class="story-act" id="act-genre">
+      <div class="story-prose">
+        <div class="act-label">§ The Genre Battlefield</div>
+        <h2 class="act-title">Genre Battlefield</h2>
+        <p>The tag signal generalizes to whole genres. Some genres win systematically — not because they make better games, but because they are built for indefinite play.</p>
+        <p>Strategy, Simulation, and Massively Multiplayer sit at the top. Platformers and Puzzle games — designed to be finished — sit at the bottom.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act-genre-chart"></div>
+        <p class="story-caption">Each dot is a game. Genres sorted by median alive ratio. The gap between "designed to end" and "designed to continue" is hard to miss.</p>
+      </div>
+    </section>
+
+    <!-- Act 5: Critic Blind Spot -->
+    <section class="story-act" id="act-critic">
+      <div class="story-prose">
+        <div class="act-label">§ The Critic Blind Spot</div>
+        <h2 class="act-title">Communities See It First</h2>
+        <p>Immortals are often underrated at launch. The <em>rating delta</em> — RAWG user score minus Metacritic score, normalized — skews positive for high-vitality games.</p>
+        <p>Communities recognize staying power before reviewers do. Critics score the launch; players score the years that follow.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act-critic-chart"></div>
+        <p class="story-caption">Rating delta (user score − critic score) vs alive ratio. Positive delta = users rated higher than critics. Median delta for all games: −0.14.</p>
+      </div>
+    </section>
+
+    <!-- Act 6: Designed Not To End -->
+    <section class="story-act" id="act-completion">
+      <div class="story-prose">
+        <div class="act-label">§ The Structural Signal</div>
+        <h2 class="act-title">Designed Not to End</h2>
+        <p>There is a statistical signature behind the tag pattern. Games you can <em>finish</em> die faster than games you can't. Completion rate and alive ratio are negatively correlated (ρ = −0.175).</p>
+        <p>The genres that survive — MMO, Strategy, Simulation — are built without a finish line.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act4-chart"></div>
+        <p class="story-caption">Completion rate (beaten/owned) vs alive ratio. Color by genre cluster. Genres in the top-left corner — high vitality, low completion — are the long-term survivors.</p>
+      </div>
+    </section>
+
+    <!-- Act 7: Drop Rate Paradox -->
+    <section class="story-act" id="act-drop">
+      <div class="story-prose">
+        <div class="act-label">§ The Drop Rate Paradox</div>
+        <h2 class="act-title">Not All Abandonment Is Equal</h2>
+        <p>Some games are dropped because they are bad. Others because they are intense. The games where people quit and come back tend to survive.</p>
+        <p>High drop rate + high vitality: games you return to — roguelikes, survival, competitive titles. High drop rate + low vitality: genuinely abandoned.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act-drop-chart"></div>
+        <p class="story-caption">Drop rate (dropped/owned) vs alive ratio. Lines mark the dataset medians. Four quadrants, four stories about why people stop playing.</p>
+      </div>
+    </section>
+
+    <!-- Act 8: Price of Forever -->
+    <section class="story-act" id="act-price">
+      <div class="story-prose">
+        <div class="act-label">§ The Price of Forever</div>
+        <h2 class="act-title">Does Money Change the Equation?</h2>
+        <p>We split games into price brackets and measured median vitality. The answer challenges the "free-to-play wins" narrative.</p>
+        <p>Counter-Strike: Source and Team Fortress 2 were paid games for years before going free. Price alone does not predict immortality.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act-price-chart"></div>
+        <p class="story-caption">Median alive ratio by launch price bracket (USD). Number of games per bucket shown above each bar.</p>
+      </div>
+    </section>
+
+    <!-- Act 9: Time Curve -->
+    <section class="story-act" id="act-timecurve">
+      <div class="story-prose">
+        <div class="act-label">§ The Time Curve</div>
+        <h2 class="act-title">Breathing and Dying, Side by Side</h2>
+        <p>Let's watch six games live in real time. Same axis, same scale — twenty years of monthly player counts. Two immortals from the AAA world, two indie survivors, two games that collapsed.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act5-chart"></div>
+        <div class="ts-legend" id="act5-legend"></div>
+        <p class="story-caption">Monthly average players (log scale). Six curated titles spanning all four archetypes — picked to make the contrast impossible to miss.</p>
+      </div>
+    </section>
+
+    <!-- Act 6: Buzz Multiplier -->
+    <section class="story-act" id="act-buzz">
+      <div class="story-prose">
+        <div class="act-label">§ The Cultural Signal</div>
+        <h2 class="act-title">The Buzz Multiplier</h2>
+        <p>Vitality isn't only a Steam number — it leaks into culture. Even normalizing for game age, immortals still receive <strong>1.5× more YouTube videos per year</strong> than fading games (51,713 vs 34,459 median). The games that survive keep generating conversation.</p>
+      </div>
+      <div class="story-chart-wrap">
+        <div class="story-chart" id="act6-chart"></div>
+        <p class="story-caption">Age-normalized YouTube activity vs alive ratio (log scale). Semi-transparent points are capped at the 1M API ceiling (~36% of non-zero entries).</p>
+      </div>
+    </section>
+
+    <!-- Outro -->
+    <section class="story-outro" id="act-outro">
+      <div class="outro-inner">
+        <div class="act-label">§ Your Turn</div>
+        <h2 class="outro-title"><em>Now go break our reading.</em></h2>
+        <p class="outro-body">This is our pattern. But the dataset is in your hands. Pick a genre we didn't surface. Compare two games we didn't pair. Build your own four-corner story.</p>
+        <div class="outro-cta">
+          <button class="btn-primary" id="cta-sandbox-cases">Sandbox the six case studies →</button>
+          <button class="btn-back" data-view="main">← Back to the landscape</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
 
 <!-- Flaoting Section Tray -->
 <div class="selection-tray hidden" id="selection-tray">
@@ -219,7 +424,7 @@
 </aside>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="/assets/js/data.js"></script>
-<script src="/assets/js/main.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>
