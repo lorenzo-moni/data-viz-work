@@ -1824,3 +1824,109 @@ input[type="range"]::-moz-range-thumb {
   .mortality-row { grid-template-columns: 28px 1fr 64px; }
   .mortality-bar-wrap { display: none; }
 }
+
+/* ==========================================================
+   CHART TOOLBAR — fullscreen + zoom buttons
+   ========================================================== */
+
+.chart-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 5px;
+  z-index: 5;
+}
+
+.ct-btn {
+  width: 30px;
+  height: 30px;
+  background: var(--bg-panel);
+  border: 1px solid var(--rule);
+  color: var(--ink-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 2px;
+  transition: background 0.12s, color 0.12s;
+  padding: 0;
+}
+
+.ct-btn:hover {
+  background: var(--bg-lift);
+  color: var(--ink);
+  border-color: var(--ink-dim);
+}
+
+/* In landscape fullscreen the filter panel is 300px wide on the right;
+   shift the toolbar so it sits just to the left of it */
+.chart-wrap.is-fullscreen .chart-toolbar {
+  right: 314px;
+}
+
+/* Drag cursor when panned/zoomed in */
+#main-chart.is-zoomed,
+#sandbox-chart.is-zoomed,
+#sandbox-ts.is-zoomed {
+  cursor: grab;
+}
+
+#main-chart.is-dragging,
+#sandbox-chart.is-dragging,
+#sandbox-ts.is-dragging {
+  cursor: grabbing !important;
+}
+
+/* ==========================================================
+   FULLSCREEN — chart wrappers + SVG sizing
+   ========================================================== */
+
+.chart-wrap:fullscreen,
+.sandbox-chart-wrap:fullscreen,
+.ts-chart-wrap:fullscreen {
+  background: var(--bg-panel);
+  padding: 48px;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Landscape: reserve right side for filter overlay */
+.chart-wrap:fullscreen {
+  padding-right: 348px;
+}
+
+.chart-wrap:fullscreen #main-chart,
+.sandbox-chart-wrap:fullscreen #sandbox-chart,
+.ts-chart-wrap:fullscreen #sandbox-ts {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ==========================================================
+   FULLSCREEN FILTER OVERLAY (.controls re-parented into .chart-wrap)
+   ========================================================== */
+
+.controls.is-fullscreen-controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  max-height: none;
+  overflow-y: auto;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--rule);
+  padding: 28px 20px;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}

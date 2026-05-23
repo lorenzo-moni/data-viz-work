@@ -17,6 +17,7 @@ const chart = {
 
 function initChart() {
   const svg = d3.select("#main-chart");
+  svg.selectAll("*").remove();
   const bbox = svg.node().getBoundingClientRect();
   chart.width = bbox.width - chart.margin.left - chart.margin.right;
   chart.height = bbox.height - chart.margin.top - chart.margin.bottom;
@@ -72,16 +73,27 @@ function initChart() {
     .translateExtent([[0, 0], [chart.width, chart.height]])
     .extent([[0, 0], [chart.width, chart.height]])
     .on("start.tooltip", () => tooltip.classed("visible", false))
+    .on("start.cursor", (e) => { if (!(e.sourceEvent instanceof WheelEvent) && d3.zoomTransform(chart.svg.node()).k > 1) chart.svg.classed("is-dragging", true); })
+    .on("end.cursor", () => chart.svg.classed("is-dragging", false))
     .on("zoom", onChartZoom);
 
   svg.call(chart.zoom);
   svg.on("dblclick.zoom", () => {
     svg.transition().duration(300).call(chart.zoom.transform, d3.zoomIdentity);
   });
+
+  setupChartToolbar({
+    wrapEl: document.querySelector(".chart-wrap"),
+    svgEl: svg.node(),
+    chartObj: chart,
+    reinit: () => { initChart(); update(); },
+    hasOverlayPanel: true,
+  });
 }
 
 function onChartZoom(event) {
   const t = event.transform;
+  chart.svg.classed("is-zoomed", t.k > 1);
   const xz = t.rescaleX(chart.xScale);
   const yz = t.rescaleY(chart.yScale);
 

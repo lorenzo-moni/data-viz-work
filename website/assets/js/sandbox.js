@@ -70,6 +70,8 @@ function initSandbox() {
     .scaleExtent([1, 20])
     .translateExtent([[0, 0], [sandbox.width, sandbox.height]])
     .extent([[0, 0], [sandbox.width, sandbox.height]])
+    .on("start.cursor", (e) => { if (!(e.sourceEvent instanceof WheelEvent) && d3.zoomTransform(sandbox.svg.node()).k > 1) sandbox.svg.classed("is-dragging", true); })
+    .on("end.cursor", () => sandbox.svg.classed("is-dragging", false))
     .on("zoom", onSandboxZoom);
 
   svg.call(sandbox.zoom);
@@ -78,11 +80,19 @@ function initSandbox() {
   });
 
   sandbox.initialized = true;
+
+  setupChartToolbar({
+    wrapEl: document.querySelector(".sandbox-chart-wrap"),
+    svgEl: svg.node(),
+    chartObj: sandbox,
+    reinit: () => { initSandbox(); if (sandbox.initialized) renderSandbox(); },
+  });
 }
 
 function onSandboxZoom(event) {
   if (!sandbox.xScale || !sandbox.yScale) return;
   const t = event.transform;
+  sandbox.svg.classed("is-zoomed", t.k > 1);
   const xz = t.rescaleX(sandbox.xScale);
   const yz = t.rescaleY(sandbox.yScale);
 
@@ -373,6 +383,8 @@ function initTimeSeries() {
     .scaleExtent([1, 40])
     .translateExtent([[0, 0], [ts.width, ts.height]])
     .extent([[0, 0], [ts.width, ts.height]])
+    .on("start.cursor", (e) => { if (!(e.sourceEvent instanceof WheelEvent) && d3.zoomTransform(ts.svg.node()).k > 1) ts.svg.classed("is-dragging", true); })
+    .on("end.cursor", () => ts.svg.classed("is-dragging", false))
     .on("zoom", onTsZoom);
 
   svg.call(ts.zoom);
@@ -381,11 +393,19 @@ function initTimeSeries() {
   });
 
   ts.initialized = true;
+
+  setupChartToolbar({
+    wrapEl: document.querySelector(".ts-chart-wrap"),
+    svgEl: svg.node(),
+    chartObj: ts,
+    reinit: () => { initTimeSeries(); if (ts.initialized) renderTimeSeries(); },
+  });
 }
 
 function onTsZoom(event) {
   if (!ts.xScale || !ts.yScale) return;
   const t = event.transform;
+  ts.svg.classed("is-zoomed", t.k > 1);
   const xz = t.rescaleX(ts.xScale);
   const yz = t.rescaleY(ts.yScale);
 
