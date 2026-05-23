@@ -25,15 +25,46 @@ function addToSelection(g) {
 }
 
 function mortalityIndex(games) {
-  const scores = games.map((g) => {
-    const ytpy = g.youtube_count / Math.max(1, 2026 - g.year);
-    return g.alive_ratio * 1.0 + Math.log1p(ytpy) * 0.20;
+  const age = (g) => Math.max(1, 2026 - g.year);
+  // Subset: year >= 2000 per notebook cell 27
+  const pool = games.filter((g) => g.year >= 2000);
+
+  const feats = pool.map((g) => {
+    const eng = g.engagement_total || 0;
+    return {
+      g,
+      alive:     g.alive_ratio,
+      playing:   eng > 0 ? g.status_playing / eng : 0,  // same as alive_ratio but notebook lists separately
+      beaten:    eng > 0 ? g.status_beaten  / eng : 0,
+      playtime:  g.playtime || 0,
+      reddit_py: (g.reddit_count || 0) / age(g),
+      twitch_py: (g.twitch_count || 0) / age(g),
+    };
   });
-  const mn = d3.min(scores), mx = d3.max(scores);
-  return games.map((g, i) => ({
-    ...g,
-    _score: mx === mn ? 50 : Math.round(((scores[i] - mn) / (mx - mn)) * 100),
-    _ytpy: g.youtube_count / Math.max(1, 2026 - g.year),
+
+  // Clip each feature at its 99th percentile then MinMax-scale to [0,1]
+  const cols = ["alive", "playing", "beaten", "playtime", "reddit_py", "twitch_py"];
+  cols.forEach((c) => {
+    const sorted = feats.map((f) => f[c]).filter((v) => isFinite(v)).sort(d3.ascending);
+    const p99 = d3.quantile(sorted, 0.99) || 1;
+    const clipped = feats.map((f) => Math.min(f[c], p99));
+    const mn = d3.min(clipped), mx = d3.max(clipped);
+    feats.forEach((f, i) => { f[c] = mx === mn ? 0 : (clipped[i] - mn) / (mx - mn); });
+  });
+
+  // Weighted sum (notebook cell 27 weights)
+  const W = { alive: 1.0, playing: 0.5, beaten: -0.3, playtime: 0.3, reddit_py: 0.2, twitch_py: 0.2 };
+  const raw = feats.map((f) =>
+    W.alive * f.alive + W.playing * f.playing + W.beaten * f.beaten +
+    W.playtime * f.playtime + W.reddit_py * f.reddit_py + W.twitch_py * f.twitch_py
+  );
+  const rmin = d3.min(raw), rmax = d3.max(raw);
+
+  return feats.map((f, i) => ({
+    ...f.g,
+    _score: rmax === rmin ? 50 : Math.round(((raw[i] - rmin) / (rmax - rmin)) * 100),
+    _ytpy:  (f.g.youtube_count || 0) / age(f.g),
+    _ctpy:  ((f.g.reddit_count || 0) + (f.g.twitch_count || 0)) / age(f.g),
   }));
 }
 
@@ -383,8 +414,9 @@ function initAct3() {
   svg.selectAll("*").remove();
 
   const gL = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-  const storyGames = GAMES_DATA.filter((g) => !g.is_live_service && g.completion_rate > 0);
+  const storyGames = GAMES_DATA.filter((g) => g.game_type !== "pure_online" && g.completion_rate > 0);
   const medC = d3.median(storyGames, (g) => g.completion_rate) || 0;
+  d3.select("#act3-median-stat").text(d3.format(".1%")(medC));
   const bins = d3.bin().domain([0, 0.5]).thresholds(25)(
     storyGames.map((d) => Math.min(d.completion_rate, 0.5))
   );
@@ -421,9 +453,9 @@ function initAct3() {
     .sort((a, b) => d3.descending(a.count, b.count)).slice(0, 10).map((d) => d.genre)
     .filter((g) => g !== "Unknown");
 
-  const TYPES3 = ["story", "hybrid", "live_service"];
-  const TYPE_COLOR = { story: "var(--accent)", hybrid: "#8ab4ff", live_service: "var(--dying)" };
-  const TYPE_LABEL = { story: "Story-driven", hybrid: "Hybrid (campaign + PvP)", live_service: "Live-service" };
+  const TYPES3 = ["story", "hybrid", "pure_online"];
+  const TYPE_COLOR = { story: "var(--accent)", hybrid: "#8ab4ff", pure_online: "var(--dying)" };
+  const TYPE_LABEL = { story: "Story-driven", hybrid: "Hybrid (campaign + PvP)", pure_online: "Live-service / Online" };
 
   const genreData = TOP_GENRES3.map((genre) => {
     return {
@@ -513,8 +545,9 @@ function initAct4() {
     .attr("text-anchor", "middle").text((d) => d.text);
 
   const r = pearsonR(filtered, (d) => d.completion_rate, (d) => d.alive_ratio);
-  const storyOnly = filtered.filter((d) => !d.is_live_service);
+  const storyOnly = filtered.filter((d) => d.game_type !== "pure_online");
   const rStory = pearsonR(storyOnly, (d) => d.completion_rate, (d) => d.alive_ratio);
+  d3.select("#act4-r-stat").text(r.toFixed(3));
   g.append("text").attr("x", w - 4).attr("y", h - 18).attr("text-anchor", "end")
     .attr("fill", "var(--ink-faint)").attr("font-size", 10)
     .text(`r (all) = ${r.toFixed(3)}`);
@@ -533,7 +566,7 @@ function initAct4() {
     .sort((a, b) => d3.descending(a.count, b.count)).slice(0, 8).map((d) => d.genre);
   const genreColorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(TOP_GENRES);
 
-  const GAME_TYPE_COLOR = { story: "var(--accent)", hybrid: "#8ab4ff", live_service: "var(--dying)" };
+  const GAME_TYPE_COLOR = { story: "var(--accent)", hybrid: "#8ab4ff", pure_online: "var(--dying)" };
   function getColor(d) {
     if (colorMode === "live_service") return GAME_TYPE_COLOR[d.game_type] || "#888";
     if (colorMode === "archetype") return ARCHETYPE_COLOR[d.archetype] || "#888";
@@ -583,13 +616,66 @@ function initAct4() {
     dots.transition().duration(400).attr("fill", (d) => getColor(d));
   });
 
-  const zoom4 = d3.zoom().scaleExtent([1, 12]).on("zoom", (e) => {
-    g.attr("transform", e.transform);
-    dots.attr("r", 3.5 / Math.sqrt(e.transform.k));
-  });
-  svg.call(zoom4);
+  // Clip dots to the chart area so they don't overflow during zoom
+  svg.append("defs").append("clipPath").attr("id", "act4-clip")
+    .append("rect").attr("width", w).attr("height", h);
+  dots.attr("clip-path", "url(#act4-clip)");
+
+  // Current rescaled axes (updated by zoom handler)
+  let xZ = x, yZ = y;
+
+  function applyZoom(e) {
+    xZ = e.transform.rescaleX(x);
+    yZ = e.transform.rescaleY(y);
+
+    g.select(".axis-x").call(d3.axisBottom(xZ).ticks(5).tickFormat(d3.format(".0%")));
+    g.select(".axis-y").call(d3.axisLeft(yZ).ticks(5).tickFormat(d3.format(".0%")));
+    g.select(".grid-y").call(d3.axisLeft(yZ).ticks(5).tickSize(-w).tickFormat("")).selectAll("text").remove();
+
+    dots.attr("cx", (d) => xZ(d.completion_rate))
+        .attr("cy", (d) => yZ(d.alive_ratio))
+        .attr("r", 3.5 / Math.sqrt(e.transform.k));
+
+    // Update median lines
+    g.select(".vline-med").attr("x1", xZ(mx)).attr("x2", xZ(mx));
+    g.select(".hline-med").attr("y1", yZ(my)).attr("y2", yZ(my));
+
+    // Update quadrant label positions
+    const mxPx = xZ(mx), myPx = yZ(my);
+    g.selectAll(".quadrant-label")
+      .attr("x", (d) => d.side === "left" ? mxPx / 2 : mxPx + (w - mxPx) / 2)
+      .attr("y", (d) => d.top ? Math.min(myPx - 4, 14) : Math.max(myPx + 10, h - 6));
+  }
+
+  // Give median lines classes so zoom can update them
+  g.selectAll("line[stroke-dasharray]")
+    .each(function () {
+      const el = d3.select(this);
+      if (+el.attr("x1") === +el.attr("x2")) el.attr("class", "vline-med");
+      else el.attr("class", "hline-med");
+    });
+
+  // Attach quadrant side/top data for positional updates
+  g.selectAll(".quadrant-label")
+    .data([
+      { side: "left",  top: true,  text: "Never finished, still played" },
+      { side: "right", top: true,  text: "Finished & replayed" },
+      { side: "left",  top: false, text: "Abandoned & forgotten" },
+      { side: "right", top: false, text: "One-and-done" },
+    ])
+    .attr("class", "quadrant-label");
+
+  // Zoom via scroll/wheel only — brush keeps mouse drag for selection.
+  // Attached to gWrap so wheel events bubble up from any child (including brush overlay).
+  const zoom4 = d3.zoom()
+    .scaleExtent([1, 12])
+    .filter((event) => event.type === "wheel")
+    .on("zoom", applyZoom);
+
+  gWrap.call(zoom4);
+
   d3.select("#act4-zoom-reset").on("click", () => {
-    svg.transition().duration(300).call(zoom4.transform, d3.zoomIdentity);
+    gWrap.transition().duration(300).call(zoom4.transform, d3.zoomIdentity);
   });
 
   const brushG = gWrap.append("g").attr("class", "brush");
@@ -600,9 +686,10 @@ function initAct4() {
       const result = document.getElementById("act4-brush-result");
       if (!event.selection) { result.innerHTML = ""; return; }
       const [[x0, y0], [x1, y1]] = event.selection;
+      // Use current rescaled axes so selection is correct after zoom
       const sel = filtered.filter((d) =>
-        x(d.completion_rate) >= x0 && x(d.completion_rate) <= x1 &&
-        y(d.alive_ratio) >= y0 && y(d.alive_ratio) <= y1
+        xZ(d.completion_rate) >= x0 && xZ(d.completion_rate) <= x1 &&
+        yZ(d.alive_ratio) >= y0 && yZ(d.alive_ratio) <= y1
       );
       result.innerHTML = sel.length
         ? `<p class="story-caption" style="color:var(--ink-dim)">${sel.length} games selected: ${sel.slice(0, 5).map((d) => d.name).join(", ")}${sel.length > 5 ? "…" : ""}</p>`
@@ -879,6 +966,15 @@ function initAct7() {
 
   render7("genre");
 
+  // Inject live RPG gap into the lead text
+  (function injectRpgGap() {
+    const immortals7 = GAMES_DATA.filter((d) => d.year <= 2018 && d.alive_ratio > 0.10 && d.engagement_total >= 30);
+    const mortals7   = GAMES_DATA.filter((d) => d.year <= 2018 && d.alive_ratio <= 0.03 && d.engagement_total >= 10);
+    const share = (pool, g) => pool.length > 0 ? pool.filter((d) => d.genres.includes(g)).length / pool.length : 0;
+    const gap = (share(immortals7, "RPG") - share(mortals7, "RPG")) * 100;
+    d3.select("#act7-rpg-gap").text(`${gap.toFixed(1)} pp`);
+  })();
+
   d3.select("#act7-by-genre").on("click", function () {
     d3.select("#act7-by-genre").classed("active", true);
     d3.select("#act7-by-platform").classed("active", false);
@@ -1126,6 +1222,15 @@ function initAct10() {
   });
 
   render10();
+
+  // Inject live platform avg for immortal vs mortal (notebook cell 23 finding: no signal)
+  (function injectPlatformAvg() {
+    const imm = GAMES_DATA.filter((d) => d.year <= 2018 && d.alive_ratio > 0.10 && d.engagement_total >= 30);
+    const mort = GAMES_DATA.filter((d) => d.year <= 2018 && d.alive_ratio <= 0.03 && d.engagement_total >= 10);
+    const avg = (pool) => pool.length > 0 ? d3.mean(pool, (d) => d.platforms.length) : 0;
+    d3.select("#act10-imm-plat").text(avg(imm).toFixed(1));
+    d3.select("#act10-mort-plat").text(avg(mort).toFixed(1));
+  })();
 }
 
 // ---- ACT 11 — The Immortals ----
@@ -1368,6 +1473,7 @@ function initAct14() {
 
   const medH = d3.median(high.filter((v) => v > 0)) || 1;
   const medL = d3.median(low.filter((v) => v > 0)) || 1;
+  d3.select("#act14-multiplier").text((medH / medL).toFixed(1));
   g.append("line").attr("x1", x14(medH)).attr("x2", x14(medH)).attr("y1", 0).attr("y2", h)
     .attr("stroke", "var(--alive)").attr("stroke-dasharray", "4,3").attr("stroke-width", 1.5);
   g.append("line").attr("x1", x14(medL)).attr("x2", x14(medL)).attr("y1", 0).attr("y2", h)
@@ -1396,7 +1502,7 @@ function renderAct15List(sortKey, games15Arg) {
   const games15 = games15Arg || mortalityIndex(GAMES_DATA.filter((g) => g.peak_players > 1000));
   let sorted;
   if (sortKey === "alive") sorted = [...games15].sort((a, b) => d3.descending(a.alive_ratio, b.alive_ratio));
-  else if (sortKey === "coverage") sorted = [...games15].sort((a, b) => d3.descending(a._ytpy, b._ytpy));
+  else if (sortKey === "coverage") sorted = [...games15].sort((a, b) => d3.descending(a._ctpy, b._ctpy));
   else if (sortKey === "age") sorted = [...games15].sort((a, b) => d3.ascending(a.year, b.year));
   else sorted = [...games15].sort((a, b) => d3.descending(a._score, b._score));
 

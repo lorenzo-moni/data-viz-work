@@ -303,8 +303,8 @@
       <div class="story-prose">
         <div class="act-label">§ 03</div>
         <h2 class="act-title">Most Games Are Never Finished</h2>
-        <p class="story-lead">The median completion rate is 9.1%.</p>
-        <p>Across every game in the dataset, only one in ten engaged players ever reaches the credits. The rest give up, get bored, or move on.</p>
+        <p class="story-lead">The median completion rate is <span id="act3-median-stat">—</span>.</p>
+        <p>Across every game in the dataset, only a fraction of engaged players ever reach the credits. The rest give up, get bored, or move on.</p>
         <p class="story-thesis">Some genres are designed for this: puzzle games get played to completion, MMOs never are. The gap matters for what comes next.</p>
       </div>
       <div class="story-chart-wrap">
@@ -319,7 +319,7 @@
         <div class="act-label">§ 04</div>
         <h2 class="act-title">The Completion Paradox</h2>
         <p class="story-lead">The games people finish are not the ones that survive.</p>
-        <p>Completion rate and alive_ratio have a negative correlation of −0.175. The games players never finish — MMOs, strategy titles, simulations — are the ones still drawing crowds years later.</p>
+        <p>Completion rate and alive_ratio have a negative correlation of <span id="act4-r-stat">—</span>. The games players never finish — MMOs, strategy titles, simulations — are the ones still drawing crowds years later.</p>
         <p class="story-thesis">Games designed to end, die. Games designed to continue, live.</p>
         <div class="act-chips" id="act4-toggle-wrap">
           <button class="act-chip active" id="act4-color-live">Color: Game type</button>
@@ -385,7 +385,7 @@
         <h2 class="act-title">The DNA of Immortality</h2>
         <p class="story-lead">Immortal games cluster in a few genres.</p>
         <p>We compare two cohorts of pre-2018 games: immortals (alive_ratio &gt; 0.10) and mortals (alive_ratio ≤ 0.03). The genre composition is starkly different.</p>
-        <p class="story-thesis">RPG is overrepresented in immortals by more than 13 percentage points. Action and Adventure lean mortal.</p>
+        <p class="story-thesis">RPG is overrepresented in immortals by <span id="act7-rpg-gap">—</span>. Action and Adventure lean mortal.</p>
         <div class="act-chips" id="act7-toggle-wrap">
           <button class="act-chip active" id="act7-by-genre">Genre</button>
           <button class="act-chip" id="act7-by-platform">Platform</button>
@@ -442,15 +442,15 @@
     <section class="story-act" data-act="10">
       <div class="story-prose">
         <div class="act-label">§ 10</div>
-        <h2 class="act-title">Platforms — Where Survival Lives</h2>
-        <p class="story-lead">Where a game launches shapes who stays.</p>
-        <p>PC games dominate our dataset, but the survival gap between platform families is smaller than expected. Multi-platform releases show a modest vitality advantage — the larger the potential audience, the more likely someone keeps the candle lit.</p>
-        <p class="story-thesis">Platform is a signal, not a sentence.</p>
+        <h2 class="act-title">Platforms — Not the Signal You'd Expect</h2>
+        <p class="story-lead">Multi-platform releases don't seem to shape survival.</p>
+        <p>PC dominates the dataset. But when we compare immortal games to mortals, the average platform spread is nearly identical — <span id="act10-imm-plat">—</span> vs <span id="act10-mort-plat">—</span> platforms on average. Platform reach correlates with audience size, not retention.</p>
+        <p class="story-thesis">Platform spread is not a predictive signal of longevity.</p>
         <div class="act-chips" id="act10-archetype-chips"></div>
       </div>
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act10-chart"></svg></div>
-        <p class="story-caption">Median alive_ratio by parent platform, split by archetype. Toggle archetypes above.</p>
+        <p class="story-caption">Median alive_ratio by parent platform, split by archetype. The bars stay flat across platforms — that's the point.</p>
       </div>
     </section>
 
@@ -521,7 +521,7 @@
         <div class="act-label">§ 14</div>
         <h2 class="act-title">The Coverage Multiplier</h2>
         <p class="story-lead">Cultural memory compounds.</p>
-        <p>Games that stay alive receive 1.5× more YouTube coverage per year than games that fade. The coverage doesn't cause the survival — but it amplifies it. New players discover old games. Old players return. The loop closes.</p>
+        <p>Games that stay alive receive <span id="act14-multiplier">—</span>× more YouTube coverage per year than games that fade. The coverage doesn't cause the survival — but it amplifies it. New players discover old games. Old players return. The loop closes.</p>
         <p class="story-thesis">Survival creates coverage. Coverage creates survival.</p>
       </div>
       <div class="story-chart-wrap">
@@ -536,7 +536,7 @@
         <div class="act-label">§ 15</div>
         <h2 class="act-title">The Verdict</h2>
         <p class="story-lead">Survival isn't luck.</p>
-        <p>We combined alive_ratio, community engagement, and coverage into a single composite index — a mortality score for each game we tracked. These are the 25 that scored highest.</p>
+        <p>We combined six engagement signals — active players, completion behaviour, playtime, Reddit and Twitch chatter per year — into a composite index (notebook cell 27 formula). These are the 25 that scored highest.</p>
         <p class="story-thesis">The pattern is consistent: endless design, community gravity, and cultural feedback. The games at the top all have at least two of these three.</p>
         <div class="sort-chips" id="act15-sort-chips">
           <button class="sort-chip active" data-sort="index">By Index</button>

@@ -118,12 +118,9 @@ async function loadGameData() {
     const categories = parseCategories(row.categories || "");
 
     const hasSinglePlayer = categories.some((c) => c === "Single-player");
-    console.log(hasSinglePlayer);
     const hasOnline = categories.some(
       (c) => c.includes("Online") || c === "Multi-player",
     );
-
-    console.log(row.name, categories, genres);
 
     const isMMO = genres.includes("Massively Multiplayer");
     const isSports = genres.includes("Sports");
@@ -138,8 +135,6 @@ async function loadGameData() {
     } else {
       game_type = "story";
     }
-
-    console.log("AASD", row.youtube_count);
 
     games.push({
       id: appId || idx + 1,
@@ -157,6 +152,9 @@ async function loadGameData() {
       completion_rate: +row.completion_rate || 0,
       drop_rate: +row.drop_rate || 0,
       youtube_count: +row.youtube_count || 0,
+      reddit_count: +row.reddit_count || 0,
+      twitch_count: +row.twitch_count || 0,
+      playtime: +row.playtime || 0,
       rating_delta: +row.rating_delta || 0,
       price: +row.price || 0,
       release_year: year,
@@ -171,7 +169,7 @@ async function loadGameData() {
       status_playing: statusPlaying,
       status_beaten: statusBeaten,
       status_dropped: statusDropped,
-      game_type, // "story" | "hybrid" | "live_service"
+      game_type, // "story" | "hybrid" | "pure_online"
       categories,
       ratings_count: +row.ratings_count || 0,
     });
