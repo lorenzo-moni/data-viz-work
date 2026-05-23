@@ -42,6 +42,10 @@ def run():
     ).to_pandas()
     matched_df = match_rawg_steam(rawg_df, steam_df)
 
+    print(matched_df.columns.tolist())
+
+    print(matched_df[matched_df["steam_appid"] == "570"])
+
     # Step 3: Scrape Steamcharts for every matched Steam app ID
     print("STEP 3: Scraping Steamcharts time series")
     games_dict = (
@@ -57,7 +61,7 @@ def run():
     games_dict = {int(k): v for k, v in games_dict.items()}
 
     # Scrape game by game, append immediately to a temp CSV
-    scrape_to_disk(games_dict, TMP_STEAMCHARTS)
+    scrape_to_disk(games_dict, TMP_STEAMCHARTS, 20)
     sc_df = build_timeseries(TMP_STEAMCHARTS)
 
     # Step 4: Final intersection to keep only games in all three sources

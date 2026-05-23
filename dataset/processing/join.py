@@ -44,6 +44,13 @@ STEAM_DROP_COLS = [
     "required_age",
 ]
 
+# Manual overrides: RAWG name → Steam appID.
+# Use this when the game was renamed, replaced, or the date mismatch is too large
+# for the fuzzy passes to bridge (e.g. CS:GO → Counter-Strike 2, same appID 730).
+MANUAL_OVERRIDES: dict[str, str] = {
+    "Counter-Strike: Global Offensive": "730",
+}
+
 EDITION_RE = re.compile(
     r"\b(goty|game of the year|definitive|remastered|remaster|deluxe|"
     r"complete|ultimate|enhanced|anniversary|collectors?|standard|"
@@ -107,14 +114,23 @@ def match_rawg_steam(rawg_df: pd.DataFrame, steam_df: pd.DataFrame) -> pd.DataFr
     )
     print(f"[join] RAWG rows: {len(rawg_df)}  |  Steam clean rows: {len(steam_clean)}")
 
-    # Pass 1
+    # Pass 0 — manual overrides (RAWG name → Steam appID)
+    rawg_df["steam_appid"] = rawg_df[RAWG_NAME_COL].map(MANUAL_OVERRIDES)
+    rawg_df["match_type"] = None
+    rawg_df.loc[rawg_df["steam_appid"].notna(), "match_type"] = "manual"
+    print(f"[join] Pass 0:  {(rawg_df['match_type'] == 'manual').sum():>6}")
+
+    # Pass 1 — exact key+year on still-unmatched rows
     p1 = rawg_df.merge(
-        steam_clean[[STEAM_ID_COL, "key", "year"]],
+        steam_clean[[STEAM_ID_COL, "key", "year"]].rename(columns={STEAM_ID_COL: "_steam_p1"}),
         on=["key", "year"],
         how="left",
-    ).rename(columns={STEAM_ID_COL: "steam_appid"})
-    p1["match_type"] = p1["steam_appid"].notna().map({True: "exact", False: None})
-    print(f"[join] Pass 1:  {p1['steam_appid'].notna().sum():>6}")
+    )
+    new_exact = p1["steam_appid"].isna() & p1["_steam_p1"].notna()
+    p1.loc[new_exact, "steam_appid"] = p1.loc[new_exact, "_steam_p1"]
+    p1.loc[new_exact, "match_type"] = "exact"
+    p1 = p1.drop(columns=["_steam_p1"])
+    print(f"[join] Pass 1:  {(p1['match_type'] == 'exact').sum():>6}")
 
     #  Pass 2
     missing_mask = p1["steam_appid"].isna()
