@@ -27,7 +27,9 @@ function initChart() {
     .append("g")
     .attr("transform", `translate(${chart.margin.left},${chart.margin.top})`);
 
-  svg.append("defs").append("clipPath")
+  svg
+    .append("defs")
+    .append("clipPath")
     .attr("id", "landscape-clip")
     .append("rect")
     .attr("width", chart.width)
@@ -37,8 +39,8 @@ function initChart() {
   chart.yScale = d3.scaleLog().range([chart.height, 0]).clamp(true);
   chart.rScale = d3.scaleSqrt().range([6, 30]);
   chart.colorScale = d3
-    .scaleLinear()
-    .domain([0, 0.1, 0.3])
+    .scaleDiverging()
+    .domain([0, 0.2, 1])
     .range(["#d96c6c", "#e6a356", "#7fc97f"])
     .clamp(true);
 
@@ -66,14 +68,30 @@ function initChart() {
     .attr("text-anchor", "middle")
     .text("average monthly players");
 
-  chart.g.append("g").attr("class", "bubbles").attr("clip-path", "url(#landscape-clip)");
+  chart.g
+    .append("g")
+    .attr("class", "bubbles")
+    .attr("clip-path", "url(#landscape-clip)");
 
-  chart.zoom = d3.zoom()
+  chart.zoom = d3
+    .zoom()
     .scaleExtent([1, 20])
-    .translateExtent([[0, 0], [chart.width, chart.height]])
-    .extent([[0, 0], [chart.width, chart.height]])
+    .translateExtent([
+      [0, 0],
+      [chart.width, chart.height],
+    ])
+    .extent([
+      [0, 0],
+      [chart.width, chart.height],
+    ])
     .on("start.tooltip", () => tooltip.classed("visible", false))
-    .on("start.cursor", (e) => { if (!(e.sourceEvent instanceof WheelEvent) && d3.zoomTransform(chart.svg.node()).k > 1) chart.svg.classed("is-dragging", true); })
+    .on("start.cursor", (e) => {
+      if (
+        !(e.sourceEvent instanceof WheelEvent) &&
+        d3.zoomTransform(chart.svg.node()).k > 1
+      )
+        chart.svg.classed("is-dragging", true);
+    })
     .on("end.cursor", () => chart.svg.classed("is-dragging", false))
     .on("zoom", onChartZoom);
 
@@ -86,7 +104,10 @@ function initChart() {
     wrapEl: document.querySelector(".chart-wrap"),
     svgEl: svg.node(),
     chartObj: chart,
-    reinit: () => { initChart(); update(); },
+    reinit: () => {
+      initChart();
+      update();
+    },
     hasOverlayPanel: true,
   });
 }
@@ -98,21 +119,29 @@ function onChartZoom(event) {
   const yz = t.rescaleY(chart.yScale);
 
   chart.g.select(".axis-x").call(
-    d3.axisBottom(xz).tickFormat(d3.format("d"))
+    d3
+      .axisBottom(xz)
+      .tickFormat(d3.format("d"))
       .ticks(Math.min(10, state.yearRange[1] - state.yearRange[0])),
   );
   chart.g.select(".axis-y").call(
-    d3.axisLeft(yz).ticks(6).tickFormat((d) => {
-      if (d >= 1e6) return (d / 1e6).toFixed(1) + "M";
-      if (d >= 1e3) return (d / 1e3).toFixed(0) + "k";
-      return d;
-    }),
+    d3
+      .axisLeft(yz)
+      .ticks(6)
+      .tickFormat((d) => {
+        if (d >= 1e6) return (d / 1e6).toFixed(1) + "M";
+        if (d >= 1e3) return (d / 1e3).toFixed(0) + "k";
+        return d;
+      }),
   );
-  chart.g.select(".grid-y")
+  chart.g
+    .select(".grid-y")
     .call(d3.axisLeft(yz).ticks(6).tickSize(-chart.width).tickFormat(""))
-    .selectAll("text").remove();
+    .selectAll("text")
+    .remove();
 
-  chart.g.selectAll("circle.bubble")
+  chart.g
+    .selectAll("circle.bubble")
     .attr("cx", (d) => xz(d.year + (d.release_month + 0.5) / 12))
     .attr("cy", (d) => yz(Math.max(100, d.avg_players)));
 }
@@ -209,9 +238,7 @@ function onHover(event, d) {
   const [mx, my] = d3.pointer(event, wrap);
 
   // Set content first so offsetWidth/Height are accurate
-  tooltip
-    .classed("visible", true)
-    .html(`
+  tooltip.classed("visible", true).html(`
       <div class="tooltip-title">${d.name}</div>
       <div class="tooltip-row"><span>Released</span><span>${d.year}</span></div>
       <div class="tooltip-row"><span>Avg players</span><span>${fmtPlayers(d.avg_players)}</span></div>
@@ -223,8 +250,8 @@ function onHover(event, d) {
   const gap = 12;
   const ttW = tooltip.node().offsetWidth;
   const ttH = tooltip.node().offsetHeight;
-  const left = (mx + gap + ttW > wrap.offsetWidth)  ? mx - ttW - gap : mx + gap;
-  const top  = (my + gap + ttH > wrap.offsetHeight) ? my - ttH - gap : my + gap;
+  const left = mx + gap + ttW > wrap.offsetWidth ? mx - ttW - gap : mx + gap;
+  const top = my + gap + ttH > wrap.offsetHeight ? my - ttH - gap : my + gap;
 
   tooltip.style("left", left + "px").style("top", top + "px");
 }
@@ -252,7 +279,6 @@ function showCard(d) {
   d3.select("#card-players").text(
     `${fmtPlayers(d.avg_players)} / ${fmtPlayers(d.peak_players)}`,
   );
-  d3.select("#card-survival").text(`${d.survivability}%`);
   d3.select("#card-rating").text(`${d.rating.toFixed(2)} / 5`);
   d3.select("#card-alive").text(`${(d.alive_ratio * 100).toFixed(0)}%`);
   d3.select("#card-genres").text(d.genres.join(" · "));

@@ -56,6 +56,38 @@ function parseCategories(str) {
     .filter(Boolean);
 }
 
+const THRESHOLDS = {
+  IMMORTAL_YEAR_CUTOFF: 2018,
+  ALIVE_MIN: null,
+  IMMORTAL_MIN: 0.5,
+
+  FADING_AAA_PEAK_MIN: 100000,
+  FADING_AAA_ALIVE_MAX: 0.05,
+  SLOW_BURN_PEAK_MAX: 100000,
+  SLOW_BURN_ALIVE_MIN: 0.1,
+  SLOW_BURN_MIN_SERIES_MONTHS: 12,
+  SLOW_BURN_YEAR_CUTOFF: 2022,
+  ENGAGEMENT_FLOOR: 30,
+  PURE_ONLINE_PEAK_FLOOR: 1000,
+  // For fading_aaa, story/hybrid games need higher RAWG engagement to exclude
+  // titles whose steam peak came from a free promotional giveaway rather than
+  // genuine sustained popularity.
+  FADING_AAA_STORY_ENGAGEMENT_MIN: 200,
+};
+
+// Fraction of months the game maintained ≥40% of its all-time peak.
+// Always in [0,1] and works identically for all game types.
+function computeLongevityScore(timeseries) {
+  if (!timeseries || timeseries.length === 0) return 0;
+  const playerCounts = timeseries.map((m) => m.players || 0);
+  const peak = Math.max(...playerCounts);
+  if (peak === 0) return 0;
+  const threshold = peak * 0.2;
+  const aliveMonths = playerCounts.filter((p) => p >= threshold).length;
+  const peakScale = Math.min(1, Math.log(1 + peak) / Math.log(1000000));
+  return (aliveMonths / timeseries.length) * peakScale;
+}
+
 async function loadGameData() {
   const [rawgRows, chartsRows] = await Promise.all([
     d3.csv("data/rawg_steam_final.csv"),
@@ -117,29 +149,37 @@ async function loadGameData() {
     const isRacing = genres.includes("Racing");
     const isStructurallyEndless = isMMO || isSports || isRacing;
 
-    let game_type;
-    if (isStructurallyEndless || (!hasSinglePlayer && hasOnline)) {
-      game_type = "pure_online";
-    } else if (hasSinglePlayer && hasOnline) {
-      game_type = "hybrid";
-    } else {
-      game_type = "story";
-    }
-
-    // RAWG engagement fields (kept for filtering in Acts 3, 7, 11, 15)
     const statusPlaying = Math.max(0, +row.status_playing || 0);
     const statusBeaten = Math.max(0, +row.status_beaten || 0);
     const statusDropped = Math.max(0, +row.status_dropped || 0);
+    const statusOwned = Math.max(0, +row.status_owned || 0);
+    const completitionRate =
+      statusBeaten + statusDropped > 0
+        ? statusBeaten / (statusBeaten + statusDropped)
+        : 0;
     const engagementTotal = statusPlaying + statusBeaten + statusDropped;
+    const positiveOutcome = statusBeaten + statusPlaying;
+    const scaleSignal = Math.min(
+      1,
+      Math.log(1 + engagementTotal) / Math.log(100000),
+    );
 
-    // alive_ratio: source depends on game type.
-    // pure_online → SteamCharts current/peak ratio (RAWG "beaten/dropped" is meaningless for live-service games)
-    // story/hybrid → RAWG engagement ratio (status_playing / engagement_total)
+    let game_type;
     let alive_ratio;
-    if (game_type === "pure_online") {
-      alive_ratio = peakPlayers > 0 ? currentPlayers / peakPlayers : 0;
+    const longevityScore = computeLongevityScore(series);
+    const positiveOutcomeScore =
+      engagementTotal > 0
+        ? (positiveOutcome / engagementTotal) * scaleSignal
+        : 0;
+    if (isStructurallyEndless || (!hasSinglePlayer && hasOnline)) {
+      game_type = "pure_online";
+      alive_ratio = longevityScore;
+    } else if (hasSinglePlayer && hasOnline) {
+      game_type = "hybrid";
+      alive_ratio = 0.7 * longevityScore + 0.3 * positiveOutcomeScore;
     } else {
-      alive_ratio = engagementTotal > 0 ? statusPlaying / engagementTotal : 0;
+      game_type = "story";
+      alive_ratio = positiveOutcomeScore;
     }
 
     games.push({
@@ -150,12 +190,11 @@ async function loadGameData() {
       peak_players: peakPlayers,
       avg_players: averagePlayers,
       alive_ratio,
-      survivability: Math.round(alive_ratio * 100),
       genres,
       platforms: normalizePlatforms(row.parent_platforms || row.platforms),
       rating: +row.rating || 0,
       metacritic: +row.metacritic || 0,
-      completion_rate: +row.completion_rate || 0,
+      completion_rate: completitionRate,
       drop_rate: +row.drop_rate || 0,
       youtube_count: +row.youtube_count || 0,
       reddit_count: +row.reddit_count || 0,
@@ -172,27 +211,78 @@ async function loadGameData() {
       current_players: currentPlayers,
       // RAWG engagement fields (used by Acts 3, 7, 11, 15 for small-N filtering)
       engagement_total: engagementTotal,
+      positive_outcome: positiveOutcome,
       status_playing: statusPlaying,
       status_beaten: statusBeaten,
       status_dropped: statusDropped,
+      status_owned: statusOwned,
+
       game_type, // "story" | "hybrid" | "pure_online"
       categories,
       ratings_count: +row.ratings_count || 0,
     });
+
+    const debug = games.filter(
+      (g) =>
+        g.name === "The Elder Scrolls V: Skyrim" || g.name === "Cyberpunk 2077",
+    );
+    debug.forEach((g) => {
+      console.log(g.name, {
+        playing: g.status_playing,
+        beaten: g.status_beaten,
+        dropped: g.status_dropped,
+        owned: g.status_owned,
+        positiveOutcome: g.positive_outcome,
+        alive_ratio: g.alive_ratio,
+      });
+    });
   });
 
-  // Classify each game into an archetype.
-  // For pure_online games alive_ratio = current/peak (SteamCharts), so hasEngagement is skipped.
+  // Set ALIVE_MIN dynamically to the median alive_ratio across all loaded games.
+  // immortal = above 50% (IMMORTAL_MIN), alive = above median (ALIVE_MIN).
+  const _sorted = games
+    .map((g) => g.alive_ratio)
+    .filter(isFinite)
+    .sort((a, b) => a - b);
+  THRESHOLDS.ALIVE_MIN = d3.quantile(_sorted, 0.5) || 0.05;
+  THRESHOLDS.FADING_AAA_ALIVE_MAX = THRESHOLDS.ALIVE_MIN;
+  THRESHOLDS.SLOW_BURN_ALIVE_MIN = THRESHOLDS.ALIVE_MIN;
+  console.log(
+    `ALIVE_MIN (median): ${(THRESHOLDS.ALIVE_MIN * 100).toFixed(2)}%`,
+  );
+
+  // Classify each game into an archetype using centralized THRESHOLDS.
   games.forEach((g) => {
-    const isOld = g.year <= 2018;
+    const isOld = g.year <= THRESHOLDS.IMMORTAL_YEAR_CUTOFF;
     const hasEngagement =
       g.game_type === "pure_online"
-        ? g.peak_players > 0
-        : g.engagement_total >= 30;
-    if (g.alive_ratio > 0.1 && isOld && hasEngagement) g.archetype = "immortal";
-    else if (g.peak_players > 100000 && g.alive_ratio < 0.05)
+        ? g.peak_players >= THRESHOLDS.PURE_ONLINE_PEAK_FLOOR
+        : g.engagement_total >= THRESHOLDS.ENGAGEMENT_FLOOR;
+
+    // Fading-AAA guard: require real-scale peak or meaningful RAWG engagement to avoid
+    // indie-spike false positives (a one-day giveaway spike on a tiny title is not "AAA").
+    const isRealAAA =
+      g.peak_players > THRESHOLDS.FADING_AAA_PEAK_MIN &&
+      (g.game_type === "pure_online" ||
+        g.engagement_total >= THRESHOLDS.FADING_AAA_STORY_ENGAGEMENT_MIN);
+
+    // Slow-burn guard: require the game has a meaningful history (≥12 months of SteamCharts
+    // data) and was released before SLOW_BURN_YEAR_CUTOFF so brand-new games still climbing
+    // their launch curve are not mis-tagged as "slow burns".
+    const isSlowBurnCandidate =
+      g.peak_players < THRESHOLDS.SLOW_BURN_PEAK_MAX &&
+      g.year <= THRESHOLDS.SLOW_BURN_YEAR_CUTOFF &&
+      g.series.length >= THRESHOLDS.SLOW_BURN_MIN_SERIES_MONTHS;
+
+    if (g.alive_ratio > THRESHOLDS.IMMORTAL_MIN && isOld && hasEngagement)
+      g.archetype = "immortal";
+    else if (isRealAAA && g.alive_ratio < THRESHOLDS.FADING_AAA_ALIVE_MAX)
       g.archetype = "fading_aaa";
-    else if (g.peak_players < 100000 && g.alive_ratio > 0.1 && hasEngagement)
+    else if (
+      isSlowBurnCandidate &&
+      g.alive_ratio > THRESHOLDS.SLOW_BURN_ALIVE_MIN &&
+      hasEngagement
+    )
       g.archetype = "slow_burn";
     else g.archetype = "mid";
   });

@@ -251,8 +251,8 @@
         <div class="act-label">§ 01</div>
         <h2 class="act-title">The Graveyard</h2>
         <p class="story-lead">Most games are already dead.</p>
-        <p>We tracked every game with enough signal — a Steam page, a player history, a community engagement record. Then we asked: how many of those players are still here?</p>
-        <p class="story-thesis">The median game retains fewer than 4% of its engaged players. The rest stopped showing up.</p>
+        <p>We tracked <span id="lede-total">—</span> titles on Steam — their player histories, their community scores, their stories. Most fade within months. A few never do. We wanted to understand why.</p>
+        <p class="story-thesis">The median game holds onto just <span id="lede-median-alive">—</span> of its peak relevance. Three quarters never cross <span id="lede-p75-alive">—</span>. The rest stopped showing up.</p>
         <div class="hero-stat-group" id="act1-stats">
           <div class="hero-stat">
             <div class="hero-num" id="act1-total">—</div>
@@ -264,7 +264,7 @@
           </div>
           <div class="hero-stat">
             <div class="hero-num" id="act1-alive">—</div>
-            <div class="hero-label">games above 10% vitality</div>
+            <div class="hero-label">immortal games</div>
           </div>
         </div>
       </div>
@@ -273,8 +273,8 @@
         <p class="story-caption">Distribution of alive_ratio across all tracked games. Log scale on y-axis.</p>
         <div class="story-guide" id="act1-guide">
           <div class="guide-eyebrow">↳ Try this</div>
-          <p class="guide-instruction">Drag a band across the right half of the histogram (alive_ratio &gt; 0.10).</p>
-          <p class="guide-expected">The hero stats collapse to ~5–8% of all games — the entire "still alive" population fits in a sliver of the distribution.</p>
+          <p class="guide-instruction">Drag a band across the right half of the histogram (alive_ratio &gt; 50%).</p>
+          <p class="guide-expected">Only <span id="lede-immortal-count">—</span> games — barely <span id="lede-immortal-pct">—</span> — survive that threshold. The entire "still alive" population fits in a sliver of the distribution.</p>
         </div>
       </div>
     </section>
@@ -284,7 +284,7 @@
       <div class="story-prose">
         <div class="act-label">§ 02</div>
         <h2 class="act-title">The Flood</h2>
-        <p class="story-lead">2016 was the year the industry drowned itself.</p>
+        <p class="story-lead"><span id="lede-flood-year">—</span> was the year the industry drowned itself.</p>
         <p>More games were released that year than any other in our dataset. Most of them are now silent — their communities gone, their servers empty.</p>
         <p class="story-thesis">The color of each bar is the median vitality of that year's cohort today. Watch the bars go from orange to red as you move right toward 2020.</p>
       </div>
@@ -295,6 +295,11 @@
           <div id="act2-panel-list"></div>
         </div>
         <p class="story-caption">Hover a bar for cohort stats. Click to drill into all games from that year.</p>
+        <div class="story-guide" id="act2-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Click the tallest bar to open the full list of releases from that year.</p>
+          <p class="guide-expected">Hundreds of titles you've never heard of. The median vitality of that cohort is near zero.</p>
+        </div>
       </div>
     </section>
 
@@ -310,6 +315,11 @@
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act3-chart"></svg></div>
         <p class="story-caption">Left: completion_rate distribution. Right: median completion by primary genre.</p>
+        <div class="story-guide" id="act3-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Compare the right-hand bars: find <strong>Puzzle</strong> vs <strong>Massively Multiplayer</strong>.</p>
+          <p class="guide-expected">Puzzle tops the chart; MMO sits near zero. Genres designed to end get finished — genres designed to continue, never are.</p>
+        </div>
       </div>
     </section>
 
@@ -319,7 +329,7 @@
         <div class="act-label">§ 04</div>
         <h2 class="act-title">The Completion Paradox</h2>
         <p class="story-lead">The games people finish are not the ones that survive.</p>
-        <p>Completion rate and alive_ratio have a negative correlation of <span id="act4-r-stat">—</span>. The games players never finish — MMOs, strategy titles, simulations — are the ones still drawing crowds years later.</p>
+        <p>Completion rate and alive_ratio have a negative correlation of <span id="act4-r-stat">—</span>. Note: this effect is weaker than it looks for online live-service games, which have no "beaten" or "dropped" status — their vitality is measured differently. For story games the relationship holds: games that players finish, die sooner.</p>
         <p class="story-thesis">Games designed to end, die. Games designed to continue, live.</p>
         <div class="act-chips" id="act4-toggle-wrap">
           <button class="act-chip active" id="act4-color-live">Color: Game type</button>
@@ -354,6 +364,11 @@
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act5-chart"></svg></div>
         <p class="story-caption">Ribbon = p25–p90 band. Solid line = median. Click genre chips to overlay.</p>
+        <div class="story-guide" id="act5-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Click <strong>RPG</strong>, then <strong>Sports</strong> to overlay both against the global median.</p>
+          <p class="guide-expected">RPG stays elevated for years. Sports collapses within the first twelve months. Add a third genre to see where Action lands.</p>
+        </div>
       </div>
     </section>
 
@@ -363,12 +378,12 @@
         <div class="act-label">§ 06</div>
         <h2 class="act-title">Genre Lifecycles</h2>
         <p class="story-lead">Every genre has its own death curve.</p>
-        <p>Strategy and Massively Multiplayer games age like wine — their vitality barely bends. Action and Adventure games age like milk — sharp drop-off by year three.</p>
+        <p><span id="lede-top-genres">RPG, Simulation, and Strategy</span> games age like wine — their communities run deep and wide, and their median vitality ranks highest among all genres. <span id="lede-bottom-genres">Sports and Racing</span> fade fastest. Action and Adventure fall close to the overall average.</p>
         <p class="story-thesis">The genre you ship in is a stronger predictor of longevity than your launch size or your review score.</p>
         <div class="story-guide" id="act6-guide">
           <div class="guide-eyebrow">↳ Try this</div>
-          <p class="guide-instruction">Click <strong>Strategy</strong>, then click <strong>Action</strong>.</p>
-          <p class="guide-expected">Strategy's curve barely bends. Action falls off a cliff after year 3.</p>
+          <p class="guide-instruction">Click <strong>RPG</strong>, then click <strong>Sports</strong>.</p>
+          <p class="guide-expected">RPG's curve barely bends. Sports falls off a cliff after year 2.</p>
         </div>
       </div>
       <div class="story-chart-wrap">
@@ -384,7 +399,7 @@
         <div class="act-label">§ 07</div>
         <h2 class="act-title">The DNA of Immortality</h2>
         <p class="story-lead">Immortal games cluster in a few genres.</p>
-        <p>We compare two cohorts of pre-2018 games: immortals (alive_ratio &gt; 0.10) and mortals (alive_ratio ≤ 0.03). The genre composition is starkly different.</p>
+        <p>We compare two cohorts of pre-2018 games: immortals (alive_ratio &gt; <span id="lede-imm-thr">—</span>) and mortals (alive_ratio ≤ <span id="lede-mort-thr">—</span>). The genre composition is starkly different.</p>
         <p class="story-thesis">RPG is overrepresented in immortals by <span id="act7-rpg-gap">—</span>. Action and Adventure lean mortal.</p>
         <div class="act-chips" id="act7-toggle-wrap">
           <button class="act-chip active" id="act7-by-genre">Genre</button>
@@ -409,13 +424,18 @@
         <div class="act-label">§ 08</div>
         <h2 class="act-title">Critics vs Community</h2>
         <p class="story-lead">A high Metacritic score does not keep players coming back.</p>
-        <p>We plot both critic score and community rating against alive_ratio. The Pearson correlations tell the story: Metacritic barely moves the needle, community rating does slightly better — but neither is strong.</p>
+        <p>We plot both critic score and community rating against alive_ratio. The Pearson correlations tell the story: Metacritic (r = <span id="act8-r-meta">—</span>) barely moves the needle, community rating (r = <span id="act8-r-rating">—</span>) does slightly better — but neither is strong.</p>
         <p class="story-thesis">Scores predict quality. They don't predict survival.</p>
         <div class="drill-list" id="act8-drill"></div>
       </div>
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act8-chart"></svg></div>
         <p class="story-caption">Click any quadrant to see the games that fall in it — e.g. high score + low survival.</p>
+        <div class="story-guide" id="act8-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Click the bottom-right quadrant (high score, low survival) on the Metacritic panel.</p>
+          <p class="guide-expected">A graveyard of critically acclaimed titles nobody plays anymore. High scores did not save them.</p>
+        </div>
       </div>
     </section>
 
@@ -424,9 +444,9 @@
       <div class="story-prose">
         <div class="act-label">§ 09</div>
         <h2 class="act-title">The Price of Survival</h2>
-        <p class="story-lead">Free-to-play titles dominate longevity rankings.</p>
-        <p>When we group games by launch price and compare their current vitality, free-to-play games sit clearly at the top. The barrier to entry shapes the size and loyalty of the community that forms around a game.</p>
-        <p class="story-thesis">Price is a retention lever, not just a revenue decision.</p>
+        <p class="story-lead">A handful of free-to-play titans dominate the very top — but they are exceptions, not the rule.</p>
+        <p><span id="lede-f2p-top">Counter-Strike 2, Dota 2, and Team Fortress 2</span> are free-to-play and rank among the most alive games on Steam. But the median free-to-play title (<span id="lede-f2p-median">—</span> alive) actually has <em>lower</em> vitality than the median paid game (<span id="lede-paid-median">—</span> alive) — the winner-takes-all dynamic is extreme.</p>
+        <p class="story-thesis">Price is a retention lever, not just a revenue decision — but only for games that earn their community.</p>
         <div class="act-chips" style="margin-top:16px">
           <label style="font:10px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);margin-right:8px">Filter genre:</label>
           <select id="act9-genre-select" style="background:var(--bg-lift);border:1px solid var(--rule-strong);color:var(--ink);font:11px var(--mono);padding:4px 8px;border-radius:2px"></select>
@@ -435,6 +455,11 @@
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act9-chart"></svg></div>
         <p class="story-caption">Median alive_ratio per price bucket. Numbers above bars = game count in each bucket.</p>
+        <div class="story-guide" id="act9-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Pick a genre from the dropdown — try <strong>RPG</strong> or <strong>Action</strong>.</p>
+          <p class="guide-expected">The F2P bar is rarely the tallest. Price doesn't determine survival; design does.</p>
+        </div>
       </div>
     </section>
 
@@ -444,13 +469,18 @@
         <div class="act-label">§ 10</div>
         <h2 class="act-title">Platforms — Not the Signal You'd Expect</h2>
         <p class="story-lead">Multi-platform releases don't seem to shape survival.</p>
-        <p>PC dominates the dataset. But when we compare immortal games to mortals, the average platform spread is nearly identical — <span id="act10-imm-plat">—</span> vs <span id="act10-mort-plat">—</span> platforms on average. Platform reach correlates with audience size, not retention.</p>
-        <p class="story-thesis">Platform spread is not a predictive signal of longevity.</p>
+        <p>PC dominates the dataset. When we compare immortal games to mortals, immortals average <span id="act10-imm-plat">—</span> platforms vs <span id="act10-mort-plat">—</span> for mortals — a small but nonzero gap. The difference likely reflects that well-supported AAA and live-service titles tend to ship multiplatform <em>and</em> receive the long-term patches and community management that keep players around.</p>
+        <p class="story-thesis">Platform count is a weak proxy for how much a studio invested in post-launch support — that investment is what predicts longevity.</p>
         <div class="act-chips" id="act10-archetype-chips"></div>
       </div>
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act10-chart"></svg></div>
         <p class="story-caption">Median alive_ratio by parent platform, split by archetype. The bars stay flat across platforms — that's the point.</p>
+        <div class="story-guide" id="act10-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Toggle off <strong>mid</strong> and <strong>slow burn</strong> chips — show only immortals and fading_aaa.</p>
+          <p class="guide-expected">PC leads immortals on every platform. The gap between immortal and fading_aaa is consistent regardless of platform.</p>
+        </div>
       </div>
     </section>
 
@@ -459,8 +489,14 @@
       <div class="story-prose">
         <div class="act-label">§ 11</div>
         <h2 class="act-title">The Immortals</h2>
-        <p class="story-lead">A handful of pre-2018 games still command more active players than most 2024 releases.</p>
-        <p>These are the outliers — the games that defied the decay curve. Some were massive at launch and stayed massive. Others launched small and grew quietly for a decade.</p>
+        <p class="story-lead">A handful of pre-2018 games still command more active players than nearly every 2024 release.</p>
+        <p>
+          <span id="lede-csgo-stat">Counter-Strike: Global Offensive peaked at 1.8 million concurrent players and still holds above 900,000.</span>
+          <span id="lede-dota-stat"> Dota 2 peaked at 1.3 million.</span>
+          <span id="lede-tf2-stat"> Team Fortress 2 — released in 2007 — still draws six-figure daily peaks eighteen years later.</span>
+          <span id="lede-2024-stat"> Most games released in 2024 never exceeded 100,000.</span>
+          These are the outliers that defied the decay curve.
+        </p>
         <p class="story-thesis">Sort by peak players, then sort by alive_ratio. The order reshuffles completely.</p>
         <div class="sort-chips" id="act11-sort-chips">
           <button class="sort-chip active" data-sort="alive">By Alive</button>
@@ -512,6 +548,11 @@
       <div class="story-chart-wrap">
         <div class="act-multiples" id="act13-grid"></div>
         <p class="story-caption">Hover any panel — the time marker syncs across all 6 charts.</p>
+        <div class="story-guide" id="act13-guide">
+          <div class="guide-eyebrow">↳ Try this</div>
+          <p class="guide-instruction">Hover slowly from left to right across any panel — the crosshair tracks across all six simultaneously.</p>
+          <p class="guide-expected">Unlike most games, these curves trend upward or plateau late. The slow-burn pattern is a late peak, not an early spike.</p>
+        </div>
       </div>
     </section>
 
@@ -527,6 +568,11 @@
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act14-chart"></svg></div>
         <p class="story-caption">Distribution of YouTube videos/year. Green = high-vitality games (alive_ratio above median). Red = low-vitality.</p>
+        <div class="story-guide" id="act14-guide">
+          <div class="guide-eyebrow">↳ Read this</div>
+          <p class="guide-instruction">Compare where the two curves peak — the orange (high-vitality) curve is shifted right by <span id="act14-multiplier-guide">—</span>×.</p>
+          <p class="guide-expected">Survival and coverage reinforce each other: alive games get more YouTube attention, which brings new players, which keeps them alive.</p>
+        </div>
       </div>
     </section>
 
@@ -547,7 +593,7 @@
         <div class="story-guide" id="act15-guide" style="margin-top:16px">
           <div class="guide-eyebrow">↳ Try this</div>
           <p class="guide-instruction">Sort <strong>By Coverage</strong>, then compare with <strong>By Index</strong>.</p>
-          <p class="guide-expected">The top 25 by index and by coverage overlap by ~70%. Click any row to bring that game into the sandbox.</p>
+          <p class="guide-expected">The top 25 by index and by coverage overlap by ~<span id="act15-overlap">—</span>%. Click any row to bring that game into the sandbox.</p>
         </div>
       </div>
       <div class="story-chart-wrap">
@@ -604,15 +650,10 @@
       <div class="stat-value" id="card-players">—</div>
     </div>
     <div class="card-stat">
-      <div class="stat-label">Survivability</div>
-      <div class="stat-value" id="card-survival">—</div>
-    </div>
-    <div class="card-stat">
       <div class="stat-label">Rating</div>
       <div class="stat-value" id="card-rating">—</div>
     </div>
     <div class="card-stat">
-      <div class="stat-label">Alive ratio</div>
       <div class="stat-value" id="card-alive">—</div>
     </div>
     <div class="card-stat wide">
