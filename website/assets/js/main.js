@@ -8,7 +8,7 @@ let ALL_GENRES = [];
 let ALL_PLATFORMS = [];
 
 const state = {
-  view: "main",
+  view: "analysis",
   yearRange: [2012, 2018],
   genres: new Set(),
   minRating: 2.5,

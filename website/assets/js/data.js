@@ -155,10 +155,6 @@ async function loadGameData() {
     const statusBeaten = Math.max(0, +row.status_beaten || 0);
     const statusDropped = Math.max(0, +row.status_dropped || 0);
     const statusOwned = Math.max(0, +row.status_owned || 0);
-    const completitionRate =
-      statusBeaten + statusDropped > 0
-        ? statusBeaten / (statusBeaten + statusDropped)
-        : 0;
     const engagementTotal = statusPlaying + statusBeaten + statusDropped;
     const positiveOutcome = statusBeaten + statusPlaying;
     const scaleSignal = Math.min(
@@ -184,6 +180,8 @@ async function loadGameData() {
       alive_ratio = positiveOutcomeScore;
     }
 
+    console.log(row.metacritic);
+
     games.push({
       id: appId || idx + 1,
       name: row.name || `Game ${idx + 1}`,
@@ -196,7 +194,7 @@ async function loadGameData() {
       platforms: normalizePlatforms(row.parent_platforms || row.platforms),
       rating: +row.rating || 0,
       metacritic: +row.metacritic || 0,
-      completion_rate: completitionRate,
+      completion_rate: +row.completion_rate || 0,
       drop_rate: +row.drop_rate || 0,
       youtube_count: +row.youtube_count || 0,
       reddit_count: +row.reddit_count || 0,
