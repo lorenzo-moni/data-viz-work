@@ -35,6 +35,8 @@ const DESIGN_CATEGORIES = new Set([
   "Visual Novel",
 ]);
 
+const ALL_ARCHETYPES = ["immortal", "aaa", "slow_burn", "fading_aaa", "mid"];
+
 const ARCHETYPE_LABELS = {
   immortal: "Immortal",
   aaa: "AAA",

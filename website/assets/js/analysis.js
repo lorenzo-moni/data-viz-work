@@ -24,77 +24,6 @@ function addToSelection(g) {
   showToast(`${g.name} added to selection`);
 }
 
-function mortalityIndex(games) {
-  const age = (g) => Math.max(1, 2026 - g.year);
-  // Subset: year >= 2000 per notebook cell 27
-  const pool = games.filter((g) => g.year >= 2000);
-
-  const feats = pool.map((g) => {
-    const eng = g.engagement_total || 0;
-    return {
-      g,
-      alive: g.alive_ratio,
-      playing: eng > 0 ? g.status_playing / eng : 0, // same as alive_ratio but notebook lists separately
-      beaten: eng > 0 ? g.status_beaten / eng : 0,
-      playtime: g.playtime || 0,
-      reddit_py: (g.reddit_count || 0) / age(g),
-      twitch_py: (g.twitch_count || 0) / age(g),
-    };
-  });
-
-  // Clip each feature at its 99th percentile then MinMax-scale to [0,1]
-  const cols = [
-    "alive",
-    "playing",
-    "beaten",
-    "playtime",
-    "reddit_py",
-    "twitch_py",
-  ];
-  cols.forEach((c) => {
-    const sorted = feats
-      .map((f) => f[c])
-      .filter((v) => isFinite(v))
-      .sort(d3.ascending);
-    const p99 = d3.quantile(sorted, 0.99) || 1;
-    const clipped = feats.map((f) => Math.min(f[c], p99));
-    const mn = d3.min(clipped),
-      mx = d3.max(clipped);
-    feats.forEach((f, i) => {
-      f[c] = mx === mn ? 0 : (clipped[i] - mn) / (mx - mn);
-    });
-  });
-
-  // Weighted sum (notebook cell 27 weights)
-  const W = {
-    alive: 1.0,
-    playing: 0.5,
-    beaten: -0.3,
-    playtime: 0.3,
-    reddit_py: 0.2,
-    twitch_py: 0.2,
-  };
-  const raw = feats.map(
-    (f) =>
-      W.alive * f.alive +
-      W.playing * f.playing +
-      W.beaten * f.beaten +
-      W.playtime * f.playtime +
-      W.reddit_py * f.reddit_py +
-      W.twitch_py * f.twitch_py,
-  );
-  const rmin = d3.min(raw),
-    rmax = d3.max(raw);
-
-  return feats.map((f, i) => ({
-    ...f.g,
-    _score:
-      rmax === rmin ? 50 : Math.round(((raw[i] - rmin) / (rmax - rmin)) * 100),
-    _ytpy: (f.g.youtube_count || 0) / age(f.g),
-    _ctpy: ((f.g.reddit_count || 0) + (f.g.twitch_count || 0)) / age(f.g),
-  }));
-}
-
 function immortalsTop(n) {
   return GAMES_DATA.filter((g) => {
     if (g.year > THRESHOLDS.IMMORTAL_YEAR_CUTOFF) return false;
@@ -1471,7 +1400,6 @@ function initAct9(sortKey) {
         (g.tags || []).includes(category) ||
         (g.categories || []).includes(category),
     ).length;
-    console.log(category, immortalCount, mortalCount);
     if (immortalCount + mortalCount < MIN_COUNT) return;
     const immortalFreq = immortalCount / Math.max(1, immortals.length);
     const mortalFreq = mortalCount / Math.max(1, mortals.length);
@@ -1500,8 +1428,6 @@ function initAct9(sortKey) {
       return d3.ascending(a.tag, b.tag);
     })
     .slice(0, 20);
-
-  console.log(sorted);
 
   const margin = { top: 10, right: 24, bottom: 10, left: 140 };
   const svgEl = document.getElementById("act9-chart");
@@ -1660,7 +1586,7 @@ function initAct10(s) {
     .attr("x", w / 2)
     .attr("y", h + 38)
     .attr("text-anchor", "middle")
-    .text(signal.toUpperCase() + " COUNT / YEAR (LOG)");
+    .text(signal.toUpperCase() + " COUNT");
   gEl
     .append("text")
     .attr("class", "axis-label")
@@ -1816,97 +1742,213 @@ function initAct11(archs) {
     });
 }
 
-// ---- ACT 12- The mortality index, ranked ----
-function initAct12(sortMode) {
-  sortMode = sortMode || "top";
-  const ranked = mortalityIndex(GAMES_DATA);
-  const aliveRanked = [...GAMES_DATA].sort((a, b) =>
-    d3.descending(a.alive_ratio, b.alive_ratio),
-  );
-  const aliveRankMap = new Map(aliveRanked.map((g, i) => [g.id, i + 1]));
+// ---- ACT 12 - The DNA of survival ----
+function initAct12(selected) {
+  selected = selected || ["immortal", "fading_aaa", "slow_burn"];
 
-  let display;
-  if (sortMode === "top") {
-    display = [...ranked]
-      .sort((a, b) => d3.descending(a._score, b._score))
-      .slice(0, 25);
-  } else if (sortMode === "bottom") {
-    display = [...ranked]
-      .sort((a, b) => d3.ascending(a._score, b._score))
-      .slice(0, 25);
-  } else {
-    // Biggest movers: largest abs difference between mortality rank and alive_ratio rank
-    const mortRanked = [...ranked].sort((a, b) =>
-      d3.descending(a._score, b._score),
-    );
-    const mortRankMap = new Map(mortRanked.map((g, i) => [g.id, i + 1]));
-    display = ranked
-      .map((g) => ({
-        ...g,
-        _rankDiff: Math.abs(
-          (aliveRankMap.get(g.id) || 999) - (mortRankMap.get(g.id) || 999),
-        ),
-      }))
-      .sort((a, b) => d3.descending(a._rankDiff, b._rankDiff))
-      .slice(0, 25);
+  const svgEl = document.getElementById("act12-chart");
+  if (!svgEl) return;
+
+  const age = (g) => Math.max(1, 2026 - g.year);
+
+  function decayPlateau(g) {
+    if (!g.series || g.series.length < 6) return null;
+    const relDate = new Date(g.year, g.release_month, 1);
+    let v6 = null,
+      v24 = null;
+    g.series.forEach(({ month, peak: mp }) => {
+      const obs = new Date(month);
+      const m =
+        (obs.getFullYear() - relDate.getFullYear()) * 12 +
+        (obs.getMonth() - relDate.getMonth());
+      if (m === 6) v6 = mp;
+      if (m === 24) v24 = mp;
+    });
+    if (!v6 || v6 < 100 || v24 === null) return null;
+    return v24 / v6;
   }
 
-  const list = document.getElementById("act12-list");
-  if (!list) return;
-  const scoreMax = d3.max(ranked, (d) => d._score) || 100;
+  const AXES = [
+    { key: "alive", label: "Alive", fn: (g) => g.alive_ratio },
+    { key: "completion", label: "Completion", fn: (g) => g.completion_rate },
+    { key: "playtime", label: "Playtime", fn: (g) => g.playtime },
+    { key: "rating", label: "Rating", fn: (g) => g.rating },
+    {
+      key: "community",
+      label: "Community",
+      fn: (g) => (g.reddit_count || 0) / age(g),
+    },
+    { key: "plateau", label: "Plateau", fn: decayPlateau },
+  ];
 
-  list.innerHTML = display
-    .map(
-      (d, i) => `
-    <li class="mortality-row" title="${d.name}">
-      <span class="mortality-rank">${i + 1}</span>
-      <span class="mortality-name">${d.name}</span>
-      <span class="mortality-year">${d.year}</span>
-      <div class="mortality-bar-wrap"><div class="mortality-bar" style="width:${((d._score / scoreMax) * 100).toFixed(1)}%"></div></div>
-      ${makeSpark(d)}
-    </li>
-  `,
-    )
-    .join("");
-
-  list.querySelectorAll(".mortality-row").forEach((row, i) => {
-    row.addEventListener("click", () => {
-      const game = display[i];
-      if (game) addToSelection(game);
-    });
-    row.addEventListener("mouseenter", () => {
-      const game = display[i];
-      if (!game) return;
-      const tooltip =
-        document.getElementById("tooltip") ||
-        document.body.appendChild(
-          Object.assign(document.createElement("div"), {
-            id: "tooltip",
-            className: "tooltip",
-          }),
-        );
-      tooltip.innerHTML = `<strong>${game.name}</strong><br>Score: ${game._score}<br>alive: ${(game.alive_ratio * 100).toFixed(1)}%<br>${legendTag(game)}`;
-      tooltip.classList.add("visible");
-      const rect = row.getBoundingClientRect();
-      tooltip.style.left = rect.right + 8 + "px";
-      tooltip.style.top = rect.top + "px";
-    });
-    row.addEventListener("mouseleave", () => {
-      const tooltip = document.getElementById("tooltip");
-      if (tooltip) tooltip.classList.remove("visible");
+  // Compute medians for all archetypes (normalisation uses all three always)
+  const medians = {};
+  ALL_ARCHETYPES.forEach((arch) => {
+    const pool = GAMES_DATA.filter((g) => g.archetype === arch);
+    medians[arch] = {};
+    AXES.forEach((ax) => {
+      const vals = pool
+        .map(ax.fn)
+        .filter((v) => v !== null && isFinite(v) && v >= 0);
+      medians[arch][ax.key] = d3.median(vals) || 0;
     });
   });
 
-  d3.select("#act12-sort-chips")
-    .selectAll(".sort-chip")
+  const normMax = {};
+  AXES.forEach((ax) => {
+    normMax[ax.key] = d3.max(ALL_ARCHETYPES, (a) => medians[a][ax.key]) || 1;
+  });
+
+  // Fixed viewBox — no getBoundingClientRect needed; CSS width:100% scales it
+  const VW = 500,
+    VH = 500;
+  const CX = 250,
+    CY = 250;
+  const radarR = 160;
+  const labelR = radarR + 28;
+
+  const svg = d3
+    .select("#act12-chart")
+    .attr("viewBox", `0 0 ${VW} ${VH}`)
+    .attr("width", null)
+    .attr("height", null);
+
+  svg.selectAll("*").remove();
+
+  const N = AXES.length;
+  const angleSlice = (2 * Math.PI) / N;
+
+  const radarLine = d3
+    .line()
+    .x((d) => d[0])
+    .y((d) => d[1])
+    .curve(d3.curveLinearClosed);
+
+  const spinG = svg.append("g").attr("transform", `translate(${CX},${CY})`);
+
+  [
+    // Grid rings
+    (0.33, 0.66, 1.0),
+  ].forEach((t) => {
+    spinG
+      .append("circle")
+      .attr("r", radarR * t)
+      .attr("fill", "none")
+      .attr("stroke", "var(--ink-muted, #444)")
+      .attr("stroke-width", 0.5)
+      .attr("stroke-dasharray", t < 1 ? "3,3" : null);
+  });
+
+  // Spokes only (labels added after polygons so they always render on top)
+  AXES.forEach((ax, i) => {
+    const angle = i * angleSlice - Math.PI / 2;
+    spinG
+      .append("line")
+      .attr("x1", 0)
+      .attr("y1", 0)
+      .attr("x2", radarR * Math.cos(angle))
+      .attr("y2", radarR * Math.sin(angle))
+      .attr("stroke", "var(--ink-muted, #444)")
+      .attr("stroke-width", 0.5);
+  });
+
+  // Data polygons + vertex dots for selected archetypes
+  selected.forEach((arch) => {
+    const color = ARCHETYPE_COLOR[arch] || "#aaa";
+    const pts = AXES.map((ax, i) => {
+      const angle = i * angleSlice - Math.PI / 2;
+      const r = radarR * (medians[arch][ax.key] / normMax[ax.key]);
+      return [r * Math.cos(angle), r * Math.sin(angle)];
+    });
+
+    spinG
+      .append("path")
+      .attr("d", radarLine(pts))
+      .attr("fill", color)
+      .attr("fill-opacity", 0.18)
+      .attr("stroke", color)
+      .attr("stroke-width", 2);
+
+    pts.forEach(([vx, vy], i) => {
+      const rawVal = medians[arch][AXES[i].key];
+      const fmt = rawVal >= 10 ? rawVal.toFixed(1) : rawVal.toFixed(3);
+      spinG
+        .append("circle")
+        .attr("cx", vx)
+        .attr("cy", vy)
+        .attr("r", 4)
+        .attr("fill", color)
+        .style("cursor", "default")
+        .on("mouseenter", function (event) {
+          const tooltip =
+            document.getElementById("tooltip") ||
+            document.body.appendChild(
+              Object.assign(document.createElement("div"), {
+                id: "tooltip",
+                className: "tooltip",
+              }),
+            );
+          tooltip.innerHTML = `<strong>${ARCHETYPE_LABELS[arch]}</strong><br>${AXES[i].label}: ${fmt}`;
+          tooltip.classList.add("visible");
+          tooltip.style.left = event.pageX + 12 + "px";
+          tooltip.style.top = event.pageY - 20 + "px";
+        })
+        .on("mousemove", function (event) {
+          const tooltip = document.getElementById("tooltip");
+          if (tooltip) {
+            tooltip.style.left = event.pageX + 12 + "px";
+            tooltip.style.top = event.pageY - 20 + "px";
+          }
+        })
+        .on("mouseleave", function () {
+          const tooltip = document.getElementById("tooltip");
+          if (tooltip) tooltip.classList.remove("visible");
+        });
+    });
+  });
+
+  // Labels added last so they always render above the polygon fills
+  AXES.forEach((ax, i) => {
+    const angle = i * angleSlice - Math.PI / 2;
+    const lx = labelR * Math.cos(angle);
+    const ly = labelR * Math.sin(angle);
+    spinG
+      .append("text")
+      .attr("x", lx)
+      .attr("y", ly + 4)
+      .attr(
+        "text-anchor",
+        Math.abs(lx) < 8 ? "middle" : lx > 0 ? "start" : "end",
+      )
+      .attr("font-size", "13px")
+      .attr("fill", "var(--ink-dim, #888)")
+      .text(ax.label);
+  });
+
+  // Also cancel any leftover animation from a previous session
+  if (window._act12Raf) {
+    cancelAnimationFrame(window._act12Raf);
+    window._act12Raf = null;
+  }
+
+  // ── Chip handler (same pattern as Act 11) ──
+  d3.select("#act12-chips")
+    .selectAll(".act-chip")
     .on("click", function () {
-      d3.select("#act12-sort-chips")
-        .selectAll(".sort-chip")
-        .classed("active", false);
-      d3.select(this).classed("active", true);
-      initAct12(this.dataset.sort);
-      const guide = document.getElementById("act12-guide");
-      if (guide && this.dataset.sort === "movers") guide.classList.add("done");
+      const chip = d3.select(this);
+      const isActive = chip.classed("active");
+      const activeChips = d3
+        .select("#act12-chips")
+        .selectAll(".act-chip.active");
+      if (isActive && activeChips.size() === 1) return;
+      chip.classed("active", !isActive);
+      const newSelected = [];
+      d3.select("#act12-chips")
+        .selectAll(".act-chip.active")
+        .each(function () {
+          newSelected.push(this.dataset.arch);
+        });
+      initAct12(newSelected);
     });
 }
 

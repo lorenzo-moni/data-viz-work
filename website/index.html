@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Built to Last</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -492,35 +493,23 @@
       </div>
     </section>
 
-    <!-- ACT 12 - The mortality index, ranked -->
+    <!-- ACT 12 - The DNA of survival -->
     <section class="story-act" data-act="12">
       <div class="story-prose">
         <div class="act-label">§ 12</div>
-        <h2 class="act-title">The mortality index, ranked</h2>
-        <p class="story-lead">One score. Six signals. All the prior chapters folded in.</p>
-        <p>Alive ratio, playing rate, minus beaten rate, plus playtime, Reddit/yr, Twitch/yr, min-max scaled to 0–100. The top 25 are exactly the games whose names you expected, plus a few surprises.</p>
-        <p class="story-thesis">No single metric cleanly separates survivors. The composite index ranks them more honestly, and the "Biggest movers" view shows which games single-metric ranking misses.</p>
+        <h2 class="act-title">The DNA of survival</h2>
+        <p class="story-lead">Every archetype leaves a fingerprint. Six signals, three shapes.</p>
+        <p>Across eleven chapters we measured what makes a game survive: alive ratio, completion, playtime, how much players love it, the hum of its community, how gently its curve decays. No single dimension tells the whole story. But look at them together, by archetype, and a signature emerges. Immortal games score wide. Fading AAA games peak on playtime and collapse everywhere else. Slow burns earn love quietly, then hold.</p>
+        <p class="story-thesis">The archetypes are not just labels. They are distinct biological types, each optimised for a different survival strategy.</p>
       </div>
       <div class="story-chart-wrap">
-        <div class="sort-chips" id="act12-sort-chips">
-          <button class="sort-chip active" data-sort="top">Top 25</button>
-          <button class="sort-chip" data-sort="bottom">Bottom 25</button>
-          <button class="sort-chip" data-sort="movers">Biggest movers</button>
+        <div class="act-chips" id="act12-chips">
+          <button class="act-chip active" data-arch="immortal">Immortal</button>
+          <button class="act-chip active" data-arch="fading_aaa">Fading AAA</button>
+          <button class="act-chip active" data-arch="slow_burn">Slow Burn</button>
         </div>
-        <div class="mortality-list-header">
-          <span>#</span>
-          <span>Game</span>
-          <span>Score</span>
-          <span>Trend</span>
-          <span>Alive</span>
-        </div>
-        <ul class="mortality-list" id="act12-list"></ul>
-        <p class="story-caption">Mortality index = alive(1.0) + playing(0.5) − beaten(0.3) + playtime(0.3) + reddit/yr(0.2) + twitch/yr(0.2), p99-clipped and min-max scaled.</p>
-        <div class="story-guide" id="act12-guide">
-          <div class="guide-eyebrow">Try this</div>
-          <p class="guide-instruction">Switch to "Biggest movers", games the composite re-ranks vs raw alive ratio.</p>
-          <p class="guide-expected">Slow-burns climb; one-hit AAAs drop. The index sees past launch hype to what actually lasted.</p>
-        </div>
+        <div class="story-chart"><svg id="act12-chart"></svg></div>
+        <p class="story-caption">Median value per archetype, normalised to the cross-archetype maximum (outer ring = best in class). Axes: Alive ratio (Acts 1–2) · Completion (Act 3) · Playtime (Act 7) · Rating (Act 6) · Community / Reddit per year (Act 10) · Decay plateau at month 24 (Act 11).</p>
       </div>
     </section>
 
