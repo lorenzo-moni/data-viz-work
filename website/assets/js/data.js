@@ -41,19 +41,68 @@ function normalizePlatforms(str) {
 }
 
 // Parse Steam categories string.
-// The column is stored as a numpy array repr: "['Single-player' 'Online PvP' ...]"
-// (space-separated single-quoted tokens, NOT comma-separated)
 function parseCategories(str) {
   if (!str) return [];
-  // Extract all single-quoted tokens, e.g. 'Online PvP' → "Online PvP"
   const matches = str.match(/'([^']+)'/g);
   if (matches) return matches.map((m) => m.slice(1, -1));
-  // Fallback: try comma-split (older format)
   return str
     .replace(/^\[|\]$/g, "")
     .split(",")
     .map((s) => s.trim().replace(/^'|'$/g, "").replace(/^"|"$/g, ""))
     .filter(Boolean);
+}
+
+const AAA_PUBLISHERS = new Set([
+  "Activision",
+  "Activision Blizzard",
+  "Blizzard Entertainment",
+  "Electronic Arts",
+  "EA",
+  "EA Sports",
+  "Ubisoft",
+  "Ubisoft Entertainment",
+  "Sony Interactive Entertainment",
+  "Sony Computer Entertainment",
+  "Microsoft Studios",
+  "Xbox Game Studios",
+  "Microsoft",
+  "Take-Two Interactive",
+  "Rockstar Games",
+  "2K",
+  "2K Games",
+  "Bethesda Softworks",
+  "Bethesda",
+  "ZeniMax",
+  "Square Enix",
+  "Square Enix Co., Ltd.",
+  "Capcom",
+  "Capcom Co., Ltd.",
+  "Bandai Namco Entertainment",
+  "Bandai Namco",
+  "Sega",
+  "Sega Games",
+  "Konami",
+  "Konami Digital Entertainment",
+  "Warner Bros. Games",
+  "Warner Bros. Interactive Entertainment",
+  "Nintendo",
+  "Nintendo of America",
+  "CD Projekt",
+  "CD PROJEKT S.A.",
+  "Ubisoft Montreal",
+  "Epic Games",
+]);
+
+function parsePublishers(raw) {
+  if (!raw) return [];
+  return String(raw)
+    .split("|")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function isAAAPublisher(publishers) {
+  return publishers.some((p) => AAA_PUBLISHERS.has(p));
 }
 
 const THRESHOLDS = {
@@ -63,7 +112,6 @@ const THRESHOLDS = {
   ALIVE_MEDIAN: null,
   DEAD_MAX: 0.1,
 
-  FADING_AAA_PEAK_MIN: 100000,
   FADING_AAA_ALIVE_MAX: 0.05,
   SLOW_BURN_PEAK_MAX: 100000,
   SLOW_BURN_ALIVE_MIN: 0.1,
@@ -71,10 +119,6 @@ const THRESHOLDS = {
   SLOW_BURN_YEAR_CUTOFF: 2022,
   ENGAGEMENT_FLOOR: 30,
   PURE_ONLINE_PEAK_FLOOR: 1000,
-  // For fading_aaa, story/hybrid games need higher RAWG engagement to exclude
-  // titles whose steam peak came from a free promotional giveaway rather than
-  // genuine sustained popularity.
-  FADING_AAA_STORY_ENGAGEMENT_MIN: 200,
 };
 
 // Fraction of months the game maintained ≥40% of its all-time peak.
@@ -141,6 +185,8 @@ async function loadGameData() {
     const genres = (row.genres || "").split("|").filter(Boolean);
     if (genres.length === 0) genres.push("Unknown");
 
+    const tags = (row.tags || "").split("|").filter(Boolean);
+
     const categories = parseCategories(row.categories || "");
     const hasSinglePlayer = categories.some((c) => c === "Single-player");
     const hasOnline = categories.some(
@@ -180,8 +226,6 @@ async function loadGameData() {
       alive_ratio = positiveOutcomeScore;
     }
 
-    console.log(row.metacritic);
-
     games.push({
       id: appId || idx + 1,
       name: row.name || `Game ${idx + 1}`,
@@ -195,6 +239,7 @@ async function loadGameData() {
       rating: +row.rating || 0,
       metacritic: +row.metacritic || 0,
       completion_rate: +row.completion_rate || 0,
+      tags,
       drop_rate: +row.drop_rate || 0,
       youtube_count: +row.youtube_count || 0,
       reddit_count: +row.reddit_count || 0,
@@ -220,6 +265,7 @@ async function loadGameData() {
       game_type, // "story" | "hybrid" | "pure_online"
       categories,
       ratings_count: +row.ratings_count || 0,
+      publishers: parsePublishers(row.publishers),
     });
   });
 
@@ -242,12 +288,7 @@ async function loadGameData() {
         ? g.peak_players >= THRESHOLDS.PURE_ONLINE_PEAK_FLOOR
         : g.engagement_total >= THRESHOLDS.ENGAGEMENT_FLOOR;
 
-    // Fading-AAA guard: require real-scale peak or meaningful RAWG engagement to avoid
-    // indie-spike false positives (a one-day giveaway spike on a tiny title is not "AAA").
-    const isRealAAA =
-      g.peak_players > THRESHOLDS.FADING_AAA_PEAK_MIN &&
-      (g.game_type === "pure_online" ||
-        g.engagement_total >= THRESHOLDS.FADING_AAA_STORY_ENGAGEMENT_MIN);
+    const aaaPublished = isAAAPublisher(g.publishers);
 
     // Slow-burn guard: require the game has a meaningful history (≥12 months of SteamCharts
     // data) and was released before SLOW_BURN_YEAR_CUTOFF so brand-new games still climbing
@@ -259,8 +300,9 @@ async function loadGameData() {
 
     if (g.alive_ratio > THRESHOLDS.IMMORTAL_MIN && isOld && hasEngagement)
       g.archetype = "immortal";
-    else if (isRealAAA && g.alive_ratio < THRESHOLDS.FADING_AAA_ALIVE_MAX)
+    else if (aaaPublished && g.alive_ratio < THRESHOLDS.FADING_AAA_ALIVE_MAX)
       g.archetype = "fading_aaa";
+    else if (aaaPublished) g.archetype = "aaa";
     else if (
       isSlowBurnCandidate &&
       g.alive_ratio > THRESHOLDS.SLOW_BURN_ALIVE_MIN &&

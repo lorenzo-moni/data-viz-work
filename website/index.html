@@ -291,7 +291,6 @@
         <div class="story-chart"><svg id="act2-chart"></svg></div>
         <div class="act-chips" id="act2-chips">
           <button class="act-chip active" data-filter="all">All</button>
-          <button class="act-chip" data-filter="engaged">Engaged only</button>
           <button class="act-chip" data-filter="aaa">AAA only</button>
         </div>
         <p class="story-caption">Each dot is a game. Y = alive_ratio. Size = √ peak players. Color = alive_ratio.</p>
@@ -424,9 +423,9 @@
       <div class="story-prose">
         <div class="act-label">§ 11</div>
         <h2 class="act-title">The DNA of endurance</h2>
-        <p class="story-lead">Certain design tags over-index in survivors, and they cluster around social and open-ended play.</p>
-        <p>Multiplayer, Co-op, Open World, Sandbox, Survival, Crafting — these tags appear disproportionately in the immortal cohort. Story Rich, Atmospheric, Singleplayer skew toward the graveyard.</p>
-        <p class="story-thesis">The behavioral loop — what you actually do — determines whether a game retains. Endless, social loops survive. Linear, consumable arcs end.</p>
+        <p class="story-lead">Not all tags are equal. Immortal games cluster around one idea: systems that never resolve.</p>
+        <p>Moddable, MOBA, MMORPG, Open World aren't genres, they're architectures for infinite play. Story Rich and Singleplayer, by contrast, skew toward the graveyard, not because they're worse games, but because they end.</p>
+        <p class="story-thesis">Immortal games are endless worlds, mortal games are just stories</p>
       </div>
       <div class="story-chart-wrap">
         <div class="sort-chips" id="act11-sort-chips">
@@ -439,8 +438,8 @@
         <p class="story-caption">Log-ratio P(tag|immortal) / P(tag|mortal). Green = immortal-leaning, red = graveyard-leaning.</p>
         <div class="story-guide" id="act11-guide">
           <div class="guide-eyebrow">↳ Try this</div>
-          <p class="guide-instruction">Sort by "Immortal freq" — which tags appear most often in games that lasted.</p>
-          <p class="guide-expected">The verbs of endurance fill the top: Multiplayer, Co-op, Online PvP. The loops that never formally end.</p>
+          <p class="guide-instruction">Sort by Immortal frequency, which tags appear most often in games that lasted.</p>
+          <p class="guide-expected">The architecture of survival emerges: Open World, Sandbox, Survival. This are structural commitments to endless play.</p>
         </div>
       </div>
     </section>
@@ -490,6 +489,7 @@
         <div class="act-chips" id="act13-chips">
           <button class="act-chip active" data-arch="all">All</button>
           <button class="act-chip" data-arch="immortal">Immortal</button>
+          <button class="act-chip" data-arch="aaa">AAA</button>
           <button class="act-chip" data-arch="fading_aaa">Fading AAA</button>
           <button class="act-chip" data-arch="slow_burn">Slow burn</button>
           <button class="act-chip" data-arch="mid">Mid</button>
@@ -631,6 +631,7 @@
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
+<script src="assets/js/constants.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/utils.js"></script>
 <div id="tooltip" class="tooltip"></div>

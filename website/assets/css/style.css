@@ -1418,6 +1418,15 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1.6;
 }
 
+.story-act:nth-of-type(even):not(.act-hero) > .story-prose {
+  grid-column: 2;
+  grid-row: 1;
+}
+.story-act:nth-of-type(even):not(.act-hero) > .story-chart-wrap {
+  grid-column: 1;
+  grid-row: 1;
+}
+
 /* Hero stats */
 .hero-stat-group {
   display: flex;
@@ -1461,6 +1470,7 @@ input[type="range"]::-moz-range-thumb {
   margin-right: 4px;
 }
 .legend-tag.immortal { background: rgba(127,201,127,0.2); color: var(--alive); }
+.legend-tag.aaa { background: rgba(230,163,86,0.2); color: #e6a356; }
 .legend-tag.slow-burn { background: rgba(138,180,255,0.15); color: #8ab4ff; }
 .legend-tag.fading-aaa { background: rgba(217,108,108,0.2); color: var(--dying); }
 .legend-tag.mid { background: rgba(166,154,140,0.15); color: var(--ink-dim); }
@@ -1574,6 +1584,11 @@ input[type="range"]::-moz-range-thumb {
   }
   .story-prose {
     position: static;
+  }
+  .story-act:nth-of-type(even) > .story-prose,
+  .story-act:nth-of-type(even) > .story-chart-wrap {
+    grid-column: auto;
+    grid-row: auto;
   }
   .hero-stat-group {
     flex-direction: row;

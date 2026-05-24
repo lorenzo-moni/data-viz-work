@@ -107,13 +107,9 @@ function immortalsTop(n) {
 }
 
 function fadingAAAGames() {
-  return GAMES_DATA.filter((g) => {
-    const isRealAAA =
-      g.peak_players > THRESHOLDS.FADING_AAA_PEAK_MIN &&
-      (g.game_type === "pure_online" ||
-        g.engagement_total >= THRESHOLDS.FADING_AAA_STORY_ENGAGEMENT_MIN);
-    return isRealAAA && g.alive_ratio < THRESHOLDS.FADING_AAA_ALIVE_MAX;
-  }).sort((a, b) => d3.descending(a.peak_players, b.peak_players));
+  return GAMES_DATA.filter((g) => g.archetype === "fading_aaa").sort((a, b) =>
+    d3.descending(a.peak_players, b.peak_players),
+  );
 }
 
 function slowBurnTop(n) {
@@ -155,18 +151,19 @@ function buildDecayCurve(games) {
   games
     .filter((g) => g.year >= 2013 && g.series.length >= 6)
     .forEach((g) => {
-      const peakLocal = Math.max(
-        g.peak_players,
-        d3.max(g.series, (s) => s.players) || 0,
-        1,
-      );
+      const peakLocal = g.peak_players;
       if (peakLocal < 100) return;
       const relMs = new Date(g.year, g.release_month, 1).getTime();
-      g.series.forEach(({ month, players }) => {
-        const mSince = Math.round((month - relMs) / 2628000000);
+      g.series.forEach(({ month, peak: monthPeak }) => {
+        const relDate = new Date(g.year, g.release_month, 1);
+        const obsDate = new Date(month);
+        const mSince =
+          (obsDate.getFullYear() - relDate.getFullYear()) * 12 +
+          (obsDate.getMonth() - relDate.getMonth());
+
         if (mSince < 0 || mSince > MAX_MONTHS) return;
         if (!buckets.has(mSince)) buckets.set(mSince, []);
-        buckets.get(mSince).push(players / peakLocal);
+        buckets.get(mSince).push(monthPeak / peakLocal);
       });
     });
   return Array.from(buckets, ([key, vals]) => {
@@ -179,7 +176,7 @@ function buildDecayCurve(games) {
       count: sorted.length,
     };
   })
-    .filter((d) => d.count >= 10)
+    .filter((d) => d.count >= 10 && d.key >= 3)
     .sort((a, b) => d3.ascending(a.key, b.key));
 }
 
@@ -422,12 +419,11 @@ function initAct2(filter) {
     (g) => g.engagement_total >= THRESHOLDS.ENGAGEMENT_FLOOR,
   );
   let games;
-  if (filter === "engaged") games = allGames;
-  else if (filter === "aaa")
+  if (filter === "aaa")
     games = allGames.filter(
-      (g) => g.peak_players >= THRESHOLDS.FADING_AAA_PEAK_MIN,
+      (g) => g.archetype === "aaa" || g.archetype === "fading_aaa",
     );
-  else games = GAMES_DATA.filter((g) => g.year >= 1990);
+  else games = allGames;
 
   const margin = { top: 24, right: 24, bottom: 44, left: 56 };
   const svgEl = document.getElementById("act2-chart");
@@ -504,28 +500,6 @@ function initAct2(filter) {
     .attr("fill", (d) => ALIVE_SCALE(d.alive_ratio))
     .attr("opacity", 0.45)
     .attr("stroke", "none");
-
-  // Annotate Skyrim if visible
-  const skyrim = games.find(
-    (d) => d.name && d.name.toLowerCase().includes("skyrim"),
-  );
-  if (skyrim) {
-    const cx = x(skyrim.year),
-      cy = y(Math.max(0.001, skyrim.alive_ratio));
-    g.append("line")
-      .attr("x1", cx)
-      .attr("x2", cx + 20)
-      .attr("y1", cy)
-      .attr("y2", cy - 16)
-      .attr("stroke", "var(--ink-dim)")
-      .attr("stroke-width", 0.8);
-    g.append("text")
-      .attr("x", cx + 22)
-      .attr("y", cy - 18)
-      .attr("font-size", 9)
-      .attr("fill", "var(--ink-dim)")
-      .text(skyrim.name.slice(0, 12));
-  }
 
   g.append("text")
     .attr("class", "axis-label")
@@ -626,11 +600,12 @@ function initAct3() {
       .attr("opacity", 0.7);
 
     gy.append("text")
-      .attr("x", 4)
+      .attr("x", w - 4)
       .attr("y", 14)
       .attr("font-size", 10)
       .attr("fill", typeColors[type])
       .attr("font-family", "var(--mono)")
+      .attr("text-anchor", "end")
       .text(typeLabels[type]);
 
     if (i === types.length - 1) {
@@ -641,15 +616,6 @@ function initAct3() {
     }
   });
 
-  // Zone labels on first band
-  g.append("text")
-    .attr("x", x(0.025))
-    .attr("y", h - 8)
-    .attr("text-anchor", "middle")
-    .attr("font-size", 8)
-    .attr("fill", "var(--dying)")
-    .attr("font-family", "var(--mono)")
-    .text("completion");
   g.append("text")
     .attr("x", x(0.55))
     .attr("y", h - 8)
@@ -930,9 +896,7 @@ function initAct7() {
     .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(".0%")));
   g.append("g")
     .attr("class", "grid grid-y")
-    .call(
-      d3.axisLeft(y).ticks(5).tickFormat("").tickSize(-w),
-    )
+    .call(d3.axisLeft(y).ticks(5).tickFormat("").tickSize(-w))
     .selectAll("text")
     .remove();
 
@@ -1230,7 +1194,7 @@ function initAct10(filter) {
   let games = GAMES_DATA;
   if (filter === "aaa")
     games = games.filter(
-      (g) => g.peak_players >= THRESHOLDS.FADING_AAA_PEAK_MIN,
+      (g) => g.archetype === "aaa" || g.archetype === "fading_aaa",
     );
 
   const monthNames = [
@@ -1421,46 +1385,64 @@ function initAct10(filter) {
 function initAct11(sortKey) {
   sortKey = sortKey || "lift";
   const immortals = GAMES_DATA.filter((g) => g.archetype === "immortal");
-  const mortals = GAMES_DATA.filter(
-    (g) => g.alive_ratio < THRESHOLDS.ALIVE_MIN || g.archetype === "fading_aaa",
-  );
+  const mortals = GAMES_DATA.filter((g) => g.archetype !== "immortal");
 
   // Collect all tags from categories + genres
-  const allTags = new Set();
+  const allCategories = new Set();
   GAMES_DATA.forEach((g) => {
-    (g.categories || []).forEach((c) => allTags.add(c));
-    (g.genres || []).forEach((c) => allTags.add(c));
+    (g.tags || []).forEach((c) => {
+      if (DESIGN_CATEGORIES.has(c)) allCategories.add(c);
+    });
+
+    (g.categories || []).forEach((c) => {
+      if (DESIGN_CATEGORIES.has(c)) allCategories.add(c);
+    });
   });
 
-  const MIN_COUNT = 30;
-  const tagStats = [];
-  allTags.forEach((tag) => {
-    const iCount = immortals.filter(
+  const MIN_COUNT = 10;
+  const categoriesStats = [];
+  allCategories.forEach((category) => {
+    const immortalCount = immortals.filter(
       (g) =>
-        (g.categories || []).includes(tag) || (g.genres || []).includes(tag),
+        (g.tags || []).includes(category) ||
+        (g.categories || []).includes(category),
     ).length;
-    const mCount = mortals.filter(
+    const mortalCount = mortals.filter(
       (g) =>
-        (g.categories || []).includes(tag) || (g.genres || []).includes(tag),
+        (g.tags || []).includes(category) ||
+        (g.categories || []).includes(category),
     ).length;
-    if (iCount + mCount < MIN_COUNT) return;
-    const iFreq = iCount / Math.max(1, immortals.length);
-    const mFreq = mCount / Math.max(1, mortals.length);
-    const lift = Math.log2(Math.max(0.001, iFreq) / Math.max(0.001, mFreq));
-    tagStats.push({ tag, iFreq, mFreq, iCount, mCount, lift });
+    console.log(category, immortalCount, mortalCount);
+    if (immortalCount + mortalCount < MIN_COUNT) return;
+    const immortalFreq = immortalCount / Math.max(1, immortals.length);
+    const mortalFreq = mortalCount / Math.max(1, mortals.length);
+    const lift = Math.log2(
+      Math.max(0.001, immortalFreq) / Math.max(0.001, mortalFreq),
+    );
+    categoriesStats.push({
+      category,
+      immortalFreq,
+      mortalFreq,
+      immortalCount,
+      mortalCount,
+      lift,
+    });
   });
 
-  if (tagStats.length === 0) return;
+  if (categoriesStats.length === 0) return;
 
-  const sorted = [...tagStats]
+  const sorted = [...categoriesStats]
     .sort((a, b) => {
-      if (sortKey === "lift")
-        return d3.descending(Math.abs(a.lift), Math.abs(b.lift));
-      if (sortKey === "immortal") return d3.descending(a.iFreq, b.iFreq);
-      if (sortKey === "mortal") return d3.descending(a.mFreq, b.mFreq);
+      if (sortKey === "lift") return d3.descending(a.lift, b.lift);
+      if (sortKey === "immortal")
+        return d3.descending(a.immortalFreq, b.immortalFreq);
+      if (sortKey === "mortal")
+        return d3.descending(a.mortalCount, b.mortalCount);
       return d3.ascending(a.tag, b.tag);
     })
     .slice(0, 20);
+
+  console.log(sorted);
 
   const margin = { top: 10, right: 24, bottom: 10, left: 140 };
   const svgEl = document.getElementById("act11-chart");
@@ -1482,7 +1464,7 @@ function initAct11(sortKey) {
   const x = d3.scaleLinear().domain([-maxAbs, maxAbs]).range([0, w]);
   const y = d3
     .scaleBand()
-    .domain(sorted.map((d) => d.tag))
+    .domain(sorted.map((d) => d.category))
     .range([0, sorted.length * barH])
     .padding(0.2);
 
@@ -1501,21 +1483,21 @@ function initAct11(sortKey) {
     g.append("rect")
       .attr("x", barX)
       .attr("width", Math.max(1, barW))
-      .attr("y", y(d.tag))
+      .attr("y", y(d.category))
       .attr("height", y.bandwidth())
       .attr("fill", color)
       .attr("opacity", 0.75);
     g.append("text")
       .attr("x", d.lift >= 0 ? x(0) - 4 : x(0) + 4)
-      .attr("y", y(d.tag) + y.bandwidth() / 2)
+      .attr("y", y(d.category) + y.bandwidth() / 2)
       .attr("dominant-baseline", "middle")
       .attr("text-anchor", d.lift >= 0 ? "end" : "start")
       .attr("font-size", 10)
       .attr("fill", "var(--ink-dim)")
-      .text(d.tag);
+      .text(d.category);
     g.append("text")
       .attr("x", d.lift >= 0 ? barX + barW + 3 : barX - 3)
-      .attr("y", y(d.tag) + y.bandwidth() / 2)
+      .attr("y", y(d.category) + y.bandwidth() / 2)
       .attr("dominant-baseline", "middle")
       .attr("text-anchor", d.lift >= 0 ? "start" : "end")
       .attr("font-size", 8)
@@ -1559,7 +1541,7 @@ function initAct12(signal) {
   );
   const r = pearsonR(
     games,
-    (g) => g[field] / age(g),
+    (g) => Math.log10(g[field] / age(g)),
     (g) => g.alive_ratio,
   );
   const rEl = document.getElementById("act12-r");
@@ -1625,7 +1607,7 @@ function initAct12(signal) {
     .attr("x", w / 2)
     .attr("y", h + 38)
     .attr("text-anchor", "middle")
-    .text(signal + " count / year (log)");
+    .text(signal.toUpperCase() + " COUNT / YEAR (LOG)");
   gEl
     .append("text")
     .attr("class", "axis-label")
@@ -1650,12 +1632,6 @@ function initAct12(signal) {
 // ---- ACT 13 — The shape of a survivor ----
 function initAct13(arch) {
   arch = arch || "all";
-  const archetypeColors = {
-    immortal: "#7fc97f",
-    fading_aaa: "#d96c6c",
-    slow_burn: "#8ab4ff",
-    mid: "#a69a8c",
-  };
 
   const margin = { top: 24, right: 24, bottom: 44, left: 56 };
   const svgEl = document.getElementById("act13-chart");
@@ -1694,14 +1670,16 @@ function initAct13(arch) {
     .remove();
 
   const archTypes =
-    arch === "all" ? ["immortal", "slow_burn", "fading_aaa", "mid"] : [arch];
+    arch === "all"
+      ? ["immortal", "aaa", "fading_aaa", "slow_burn", "mid"]
+      : [arch];
 
   archTypes.forEach((a) => {
     const subset = GAMES_DATA.filter((d) => d.archetype === a);
     const curve = buildDecayCurve(subset).filter((d) => d.key <= 72);
     if (curve.length < 3) return;
 
-    const color = archetypeColors[a] || "#a69a8c";
+    const color = ARCHETYPE_COLOR[a] || "#a69a8c";
     const opacity = arch === "all" ? 0.7 : 1;
 
     const area = d3

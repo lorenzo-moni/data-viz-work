@@ -10,6 +10,7 @@ function fmtPlayers(n) {
 
 const ARCHETYPE_COLOR = {
   immortal: "#7fc97f",
+  aaa: "#e6a356",
   slow_burn: "#8ab4ff",
   fading_aaa: "#d96c6c",
   mid: "#a69a8c",

@@ -55,6 +55,7 @@ function switchView(targetView) {
     });
   }
 
+  window.location.hash = targetView;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -198,4 +199,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initChart();
   update();
   updateSelectionUI();
+
+  const validViews = ["main", "sandbox", "analysis"];
+  const hash = window.location.hash.replace("#", "");
+  if (validViews.includes(hash)) switchView(hash);
 });
