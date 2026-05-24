@@ -1,5 +1,5 @@
 // ==========================================================
-// UTILS — shared helpers and constants
+// UTILS - shared helpers and constants
 // ==========================================================
 
 function fmtPlayers(n) {
@@ -7,14 +7,6 @@ function fmtPlayers(n) {
   if (n >= 1e3) return (n / 1e3).toFixed(0) + "k";
   return n.toString();
 }
-
-const ARCHETYPE_COLOR = {
-  immortal: "#7fc97f",
-  aaa: "#e6a356",
-  slow_burn: "#8ab4ff",
-  fading_aaa: "#d96c6c",
-  mid: "#a69a8c",
-};
 
 // Domain is set dynamically in data.js after computing the population median.
 // Placeholder keeps rendering sane if scale is ever read before data loads.

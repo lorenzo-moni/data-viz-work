@@ -1,5 +1,5 @@
 // ==========================================================
-// SANDBOX — § 02 The Sandbox (scatter + time series)
+// SANDBOX - § 02 The Sandbox (scatter + time series)
 // ==========================================================
 
 const sandbox = {
@@ -21,7 +21,7 @@ function initSandbox() {
   const svg = d3.select("#sandbox-chart");
   const bbox = svg.node().getBoundingClientRect();
 
-  // If the view is hidden, bbox is 0×0 — bail and we'll re-init when it's visible
+  // If the view is hidden, bbox is 0×0 - bail and we'll re-init when it's visible
   if (bbox.width === 0 || bbox.height === 0) {
     sandbox.initialized = false;
     return;
@@ -58,25 +58,46 @@ function initSandbox() {
     .attr("x", -sandbox.height / 2)
     .attr("y", -60)
     .attr("text-anchor", "middle");
-  svg.append("defs").append("clipPath")
+  svg
+    .append("defs")
+    .append("clipPath")
     .attr("id", "sandbox-clip")
     .append("rect")
     .attr("width", sandbox.width)
     .attr("height", sandbox.height);
 
-  sandbox.g.append("g").attr("class", "sandbox-points").attr("clip-path", "url(#sandbox-clip)");
+  sandbox.g
+    .append("g")
+    .attr("class", "sandbox-points")
+    .attr("clip-path", "url(#sandbox-clip)");
 
-  sandbox.zoom = d3.zoom()
+  sandbox.zoom = d3
+    .zoom()
     .scaleExtent([1, 20])
-    .translateExtent([[0, 0], [sandbox.width, sandbox.height]])
-    .extent([[0, 0], [sandbox.width, sandbox.height]])
-    .on("start.cursor", (e) => { if (!(e.sourceEvent instanceof WheelEvent) && d3.zoomTransform(sandbox.svg.node()).k > 1) sandbox.svg.classed("is-dragging", true); })
+    .translateExtent([
+      [0, 0],
+      [sandbox.width, sandbox.height],
+    ])
+    .extent([
+      [0, 0],
+      [sandbox.width, sandbox.height],
+    ])
+    .on("start.cursor", (e) => {
+      if (
+        !(e.sourceEvent instanceof WheelEvent) &&
+        d3.zoomTransform(sandbox.svg.node()).k > 1
+      )
+        sandbox.svg.classed("is-dragging", true);
+    })
     .on("end.cursor", () => sandbox.svg.classed("is-dragging", false))
     .on("zoom", onSandboxZoom);
 
   svg.call(sandbox.zoom);
   svg.on("dblclick.zoom", () => {
-    svg.transition().duration(300).call(sandbox.zoom.transform, d3.zoomIdentity);
+    svg
+      .transition()
+      .duration(300)
+      .call(sandbox.zoom.transform, d3.zoomIdentity);
   });
 
   sandbox.initialized = true;
@@ -85,7 +106,10 @@ function initSandbox() {
     wrapEl: document.querySelector(".sandbox-chart-wrap"),
     svgEl: svg.node(),
     chartObj: sandbox,
-    reinit: () => { initSandbox(); if (sandbox.initialized) renderSandbox(); },
+    reinit: () => {
+      initSandbox();
+      if (sandbox.initialized) renderSandbox();
+    },
   });
 }
 
@@ -107,76 +131,42 @@ function onSandboxZoom(event) {
     return (d) => (Math.abs(d) < 1 && d !== 0 ? d.toFixed(2) : d);
   }
 
-  sandbox.g.select(".axis-x").call(
-    d3.axisBottom(xz).ticks(6).tickFormat(sandboxFmtZoom(sandbox.xField)),
-  );
-  sandbox.g.select(".axis-y").call(
-    d3.axisLeft(yz).ticks(6).tickFormat(sandboxFmtZoom(sandbox.yField)),
-  );
+  sandbox.g
+    .select(".axis-x")
+    .call(
+      d3.axisBottom(xz).ticks(6).tickFormat(sandboxFmtZoom(sandbox.xField)),
+    );
+  sandbox.g
+    .select(".axis-y")
+    .call(d3.axisLeft(yz).ticks(6).tickFormat(sandboxFmtZoom(sandbox.yField)));
 
-  sandbox.g.selectAll(".sandbox-point")
+  sandbox.g
+    .selectAll(".sandbox-point")
     .select("circle")
     .attr("cx", (d) => xz(d[sandbox.xField]))
     .attr("cy", (d) => yz(d[sandbox.yField]));
-  sandbox.g.selectAll(".sandbox-point")
+  sandbox.g
+    .selectAll(".sandbox-point")
     .select("text")
     .attr("x", (d) => xz(d[sandbox.xField]) + 14)
     .attr("y", (d) => yz(d[sandbox.yField]) + 4);
 }
 
-const FIELD_LABELS = {
-  completion_rate: "Completion rate",
-  alive_ratio: "Alive ratio",
-  drop_rate: "Drop rate",
-  rating: "Rating",
-  metacritic: "Metacritic",
-  year: "Release year",
-  price: "Price (USD)",
-  avg_players: "Avg players",
-  peak_players: "Peak players",
-  current_players: "Current players",
-  youtube_count: "YouTube videos",
-  engagement_total: "Total engagement",
-  ratings_count: "# of ratings",
-};
-
-const LOG_FIELDS = new Set([
-  "peak_players", "avg_players", "current_players",
-  "youtube_count", "engagement_total", "ratings_count",
-]);
-
-const FIELD_DESCRIPTIONS = {
-  completion_rate:   'Share of RAWG players who marked the game as "beaten". Most meaningful for story-driven titles.',
-  alive_ratio:       'Share of engaged players still actively playing vs. those who finished or dropped it. The headline "still-alive" signal.',
-  drop_rate:         "Share of RAWG players who abandoned the game before finishing it.",
-  rating:            "Average user rating from RAWG, on a 0–5 scale.",
-  metacritic:        "Aggregated Metacritic critic score, 0–100.",
-  year:              "Calendar year of the Steam release.",
-  price:             "Current Steam price in USD.",
-  avg_players:       "Mean monthly concurrent players over the game's full SteamCharts history (log scale).",
-  peak_players:      "All-time peak of monthly concurrent players on Steam (log scale).",
-  current_players:   "Concurrent players in the most recent SteamCharts month (log scale).",
-  youtube_count:     "Number of YouTube videos referencing the game — a proxy for cultural footprint (log scale).",
-  engagement_total:  "Total RAWG players who tagged the game as playing, beaten, or dropped (log scale).",
-  ratings_count:     "Number of RAWG user ratings — a proxy for audience size (log scale).",
-  color_genre:       "Each dot is tinted by its primary RAWG genre.",
-  color_alive_ratio: "Red → orange → green gradient mapping current vitality.",
-  color_year:        "Viridis gradient from 2012 (dark purple) to 2025 (yellow).",
-};
-
-const COLOR_LABELS = {
-  genre:       "Primary genre",
-  alive_ratio: "Alive ratio gradient",
-  year:        "Release year gradient",
-};
-
 function updateSandboxDescriptions() {
-  d3.select("#desc-x-label").text(`X-axis selected: ${FIELD_LABELS[sandbox.xField]}`);
+  d3.select("#desc-x-label").text(
+    `X-axis selected: ${FIELD_LABELS[sandbox.xField]}`,
+  );
   d3.select("#desc-x-body").text(FIELD_DESCRIPTIONS[sandbox.xField] || "");
-  d3.select("#desc-y-label").text(`Y-axis selected: ${FIELD_LABELS[sandbox.yField]}`);
+  d3.select("#desc-y-label").text(
+    `Y-axis selected: ${FIELD_LABELS[sandbox.yField]}`,
+  );
   d3.select("#desc-y-body").text(FIELD_DESCRIPTIONS[sandbox.yField] || "");
-  d3.select("#desc-color-label").text(`Color by selected: ${COLOR_LABELS[sandbox.colorField]}`);
-  d3.select("#desc-color-body").text(FIELD_DESCRIPTIONS[`color_${sandbox.colorField}`] || "");
+  d3.select("#desc-color-label").text(
+    `Color by selected: ${COLOR_LABELS[sandbox.colorField]}`,
+  );
+  d3.select("#desc-color-body").text(
+    FIELD_DESCRIPTIONS[`color_${sandbox.colorField}`] || "",
+  );
 }
 
 function renderSandbox() {
@@ -247,7 +237,14 @@ function renderSandbox() {
     colorScale = d3
       .scaleOrdinal()
       .domain(genres)
-      .range(["#e6a356", "#7fc97f", "#d96c6c", "#a5b1e4", "#ddb892", "#c8a2d6"]);
+      .range([
+        "#e6a356",
+        "#7fc97f",
+        "#d96c6c",
+        "#a5b1e4",
+        "#ddb892",
+        "#c8a2d6",
+      ]);
   } else if (sandbox.colorField === "alive_ratio") {
     colorScale = ALIVE_SCALE;
   } else {
@@ -269,12 +266,22 @@ function renderSandbox() {
     .select(".axis-x")
     .transition()
     .duration(400)
-    .call(d3.axisBottom(sandbox.xScale).ticks(6).tickFormat(sandboxFmt(sandbox.xField)));
+    .call(
+      d3
+        .axisBottom(sandbox.xScale)
+        .ticks(6)
+        .tickFormat(sandboxFmt(sandbox.xField)),
+    );
   sandbox.g
     .select(".axis-y")
     .transition()
     .duration(400)
-    .call(d3.axisLeft(sandbox.yScale).ticks(6).tickFormat(sandboxFmt(sandbox.yField)));
+    .call(
+      d3
+        .axisLeft(sandbox.yScale)
+        .ticks(6)
+        .tickFormat(sandboxFmt(sandbox.yField)),
+    );
 
   sandbox.g
     .select(".sandbox-x-label")
@@ -379,7 +386,9 @@ function initTimeSeries() {
     .attr("transform", `translate(0,${ts.height})`);
   ts.g.append("g").attr("class", "axis axis-y");
   ts.g.append("g").attr("class", "grid grid-y");
-  svg.append("defs").append("clipPath")
+  svg
+    .append("defs")
+    .append("clipPath")
     .attr("id", "ts-clip")
     .append("rect")
     .attr("width", ts.width)
@@ -389,17 +398,20 @@ function initTimeSeries() {
   ts.g.append("g").attr("class", "ts-peaks").attr("clip-path", "url(#ts-clip)");
   ts.g.append("g").attr("class", "ts-lines").attr("clip-path", "url(#ts-clip)");
 
-  ts.hoverGroup = ts.g.append("g")
+  ts.hoverGroup = ts.g
+    .append("g")
     .attr("class", "ts-hover")
     .attr("pointer-events", "none")
     .attr("clip-path", "url(#ts-clip)");
-  ts.hoverLine = ts.hoverGroup.append("line")
+  ts.hoverLine = ts.hoverGroup
+    .append("line")
     .attr("class", "ts-hover-line")
     .attr("y1", 0)
     .attr("y2", ts.height)
     .attr("opacity", 0);
 
-  ts.hoverRect = ts.g.append("rect")
+  ts.hoverRect = ts.g
+    .append("rect")
     .attr("class", "ts-hover-overlay")
     .attr("width", ts.width)
     .attr("height", ts.height)
@@ -410,15 +422,30 @@ function initTimeSeries() {
 
   const wrap = svg.node().closest(".ts-chart-wrap");
   d3.select(wrap).selectAll("#ts-tooltip").remove();
-  ts.tooltip = d3.select(wrap).append("div")
+  ts.tooltip = d3
+    .select(wrap)
+    .append("div")
     .attr("id", "ts-tooltip")
     .attr("class", "tooltip ts-hover-tooltip");
 
-  ts.zoom = d3.zoom()
+  ts.zoom = d3
+    .zoom()
     .scaleExtent([1, 40])
-    .translateExtent([[0, 0], [ts.width, ts.height]])
-    .extent([[0, 0], [ts.width, ts.height]])
-    .on("start.cursor", (e) => { if (!(e.sourceEvent instanceof WheelEvent) && d3.zoomTransform(ts.svg.node()).k > 1) ts.svg.classed("is-dragging", true); })
+    .translateExtent([
+      [0, 0],
+      [ts.width, ts.height],
+    ])
+    .extent([
+      [0, 0],
+      [ts.width, ts.height],
+    ])
+    .on("start.cursor", (e) => {
+      if (
+        !(e.sourceEvent instanceof WheelEvent) &&
+        d3.zoomTransform(ts.svg.node()).k > 1
+      )
+        ts.svg.classed("is-dragging", true);
+    })
     .on("end.cursor", () => ts.svg.classed("is-dragging", false))
     .on("zoom", onTsZoom);
 
@@ -433,7 +460,10 @@ function initTimeSeries() {
     wrapEl: document.querySelector(".ts-chart-wrap"),
     svgEl: svg.node(),
     chartObj: ts,
-    reinit: () => { initTimeSeries(); if (ts.initialized) renderTimeSeries(); },
+    reinit: () => {
+      initTimeSeries();
+      if (ts.initialized) renderTimeSeries();
+    },
   });
 }
 
@@ -441,15 +471,20 @@ function onTsHoverLeave() {
   if (ts.hoverLine) ts.hoverLine.attr("opacity", 0);
   if (ts.tooltip) ts.tooltip.classed("visible", false);
   if (ts.g) {
-    ts.g.selectAll("path.ts-line, path.ts-area, path.ts-peak")
+    ts.g
+      .selectAll("path.ts-line, path.ts-area, path.ts-peak")
       .classed("dimmed", false)
       .classed("focused", false);
   }
 }
 
 function onTsHover(event) {
-  if (!ts.xCurrent || !ts.yCurrent || !ts.selected || ts.selected.length === 0) return;
-  if (ts.svg.classed("is-dragging")) { onTsHoverLeave(); return; }
+  if (!ts.xCurrent || !ts.yCurrent || !ts.selected || ts.selected.length === 0)
+    return;
+  if (ts.svg.classed("is-dragging")) {
+    onTsHoverLeave();
+    return;
+  }
 
   const [mx, my] = d3.pointer(event, ts.g.node());
   const t = ts.xCurrent.invert(mx).getTime();
@@ -468,13 +503,16 @@ function onTsHover(event) {
     } else {
       const before = s[i - 1];
       const after = s[i];
-      pt = (t - before.month) < (after.month - t) ? before : after;
+      pt = t - before.month < after.month - t ? before : after;
     }
     if (!pt || pt.players === 0) return;
     entries.push({ game, pt });
   });
 
-  if (entries.length === 0) { onTsHoverLeave(); return; }
+  if (entries.length === 0) {
+    onTsHoverLeave();
+    return;
+  }
 
   // Snap the vertical line to the globally nearest month
   let si = bisectMs(ts.allMonths, t);
@@ -482,7 +520,7 @@ function onTsHover(event) {
   if (si > 0) {
     const prev = ts.allMonths[si - 1];
     const curr = ts.allMonths[si];
-    si = (t - prev) < (curr - t) ? si - 1 : si;
+    si = t - prev < curr - t ? si - 1 : si;
   }
   const snapMonth = ts.allMonths[si];
   const snapX = ts.xCurrent(new Date(snapMonth));
@@ -497,9 +535,13 @@ function onTsHover(event) {
   let minDist = Infinity;
   entries.forEach(({ game, pt }) => {
     const dist = Math.abs(my - ts.yCurrent(Math.max(1, pt.players)));
-    if (dist < minDist) { minDist = dist; closestId = game.id; }
+    if (dist < minDist) {
+      minDist = dist;
+      closestId = game.id;
+    }
   });
-  ts.g.selectAll("path.ts-line, path.ts-area, path.ts-peak")
+  ts.g
+    .selectAll("path.ts-line, path.ts-area, path.ts-peak")
     .classed("dimmed", (d) => d.id !== closestId)
     .classed("focused", (d) => d.id === closestId);
 
@@ -527,9 +569,12 @@ function onTsHover(event) {
   const gap = 14;
   const px = event.clientX - wrapRect.left;
   const py = event.clientY - wrapRect.top;
-  const left = (px + gap + ttW > wrapRect.width) ? px - ttW - gap : px + gap;
-  const top = (py + gap + ttH > wrapRect.height) ? py - ttH - gap : py + gap;
-  ts.tooltip.style("left", left + "px").style("top", top + "px").classed("visible", true);
+  const left = px + gap + ttW > wrapRect.width ? px - ttW - gap : px + gap;
+  const top = py + gap + ttH > wrapRect.height ? py - ttH - gap : py + gap;
+  ts.tooltip
+    .style("left", left + "px")
+    .style("top", top + "px")
+    .classed("visible", true);
 }
 
 function onTsZoom(event) {
@@ -541,38 +586,50 @@ function onTsZoom(event) {
   ts.xCurrent = xz;
   ts.yCurrent = yz;
 
-  ts.g.select(".axis-x").call(
-    d3.axisBottom(xz).ticks(6).tickFormat(d3.timeFormat("%Y")),
-  );
-  ts.g.select(".axis-y").call(
-    d3.axisLeft(yz).ticks(5, "~s"),
-  );
-  ts.g.select(".grid-y")
+  ts.g
+    .select(".axis-x")
+    .call(d3.axisBottom(xz).ticks(6).tickFormat(d3.timeFormat("%Y")));
+  ts.g.select(".axis-y").call(d3.axisLeft(yz).ticks(5, "~s"));
+  ts.g
+    .select(".grid-y")
     .call(d3.axisLeft(yz).ticks(5).tickSize(-ts.width).tickFormat(""))
-    .selectAll("text").remove();
+    .selectAll("text")
+    .remove();
 
-  const line = d3.line()
+  const line = d3
+    .line()
     .x((d) => xz(new Date(d.month)))
     .y((d) => yz(Math.max(1, d.players)))
     .defined((d) => d.players > 0)
     .curve(d3.curveMonotoneX);
 
-  const area = d3.area()
+  const area = d3
+    .area()
     .x((d) => xz(new Date(d.month)))
     .y0((d) => yz(Math.max(1, d.players)))
     .y1((d) => yz(Math.max(1, d.peak || d.players)))
     .defined((d) => d.players > 0)
     .curve(d3.curveMonotoneX);
 
-  const linePeak = d3.line()
+  const linePeak = d3
+    .line()
     .x((d) => xz(new Date(d.month)))
     .y((d) => yz(Math.max(1, d.peak || d.players)))
     .defined((d) => d.players > 0)
     .curve(d3.curveMonotoneX);
 
-  ts.g.select(".ts-areas").selectAll("path.ts-area").attr("d", (d) => area(d.series));
-  ts.g.select(".ts-peaks").selectAll("path.ts-peak").attr("d", (d) => linePeak(d.series));
-  ts.g.select(".ts-lines").selectAll("path.ts-line").attr("d", (d) => line(d.series));
+  ts.g
+    .select(".ts-areas")
+    .selectAll("path.ts-area")
+    .attr("d", (d) => area(d.series));
+  ts.g
+    .select(".ts-peaks")
+    .selectAll("path.ts-peak")
+    .attr("d", (d) => linePeak(d.series));
+  ts.g
+    .select(".ts-lines")
+    .selectAll("path.ts-line")
+    .attr("d", (d) => line(d.series));
 }
 
 function renderTimeSeries() {
@@ -593,13 +650,16 @@ function renderTimeSeries() {
   }
 
   const allPoints = selected.flatMap((g) => g.series);
-  ts.allMonths = [...new Set(allPoints.map((d) => d.month))].sort((a, b) => a - b);
+  ts.allMonths = [...new Set(allPoints.map((d) => d.month))].sort(
+    (a, b) => a - b,
+  );
   ts.xScale = d3
     .scaleTime()
     .domain(d3.extent(allPoints, (d) => new Date(d.month)))
     .range([0, ts.width]);
 
-  const maxPlayers = d3.max(allPoints, (d) => Math.max(d.players, d.peak || 0)) || 10;
+  const maxPlayers =
+    d3.max(allPoints, (d) => Math.max(d.players, d.peak || 0)) || 10;
   ts.yScale = d3
     .scaleLog()
     .domain([1, maxPlayers * 1.3])
@@ -652,24 +712,40 @@ function renderTimeSeries() {
     .defined((d) => d.players > 0)
     .curve(d3.curveMonotoneX);
 
-  const areas = ts.g.select(".ts-areas").selectAll("path.ts-area").data(selected, (d) => d.id);
+  const areas = ts.g
+    .select(".ts-areas")
+    .selectAll("path.ts-area")
+    .data(selected, (d) => d.id);
   areas.exit().remove();
-  areas.enter().append("path").attr("class", "ts-area").attr("stroke", "none")
+  areas
+    .enter()
+    .append("path")
+    .attr("class", "ts-area")
+    .attr("stroke", "none")
     .merge(areas)
     .attr("fill", (d) => colorForGame(d.id))
     .attr("fill-opacity", 0.12)
-    .transition().duration(500)
+    .transition()
+    .duration(500)
     .attr("d", (d) => area(d.series));
 
-  const peaks = ts.g.select(".ts-peaks").selectAll("path.ts-peak").data(selected, (d) => d.id);
+  const peaks = ts.g
+    .select(".ts-peaks")
+    .selectAll("path.ts-peak")
+    .data(selected, (d) => d.id);
   peaks.exit().remove();
-  peaks.enter().append("path").attr("class", "ts-peak").attr("fill", "none")
+  peaks
+    .enter()
+    .append("path")
+    .attr("class", "ts-peak")
+    .attr("fill", "none")
     .merge(peaks)
     .attr("stroke", (d) => colorForGame(d.id))
     .attr("stroke-width", 1)
     .attr("stroke-dasharray", "3 3")
     .attr("stroke-opacity", 0.55)
-    .transition().duration(500)
+    .transition()
+    .duration(500)
     .attr("d", (d) => linePeak(d.series));
 
   const lines = ts.g

@@ -1,5 +1,5 @@
 // ==========================================================
-// ANALYSIS VIEW — § 03 Our Reading (15-Act Narrative)
+// ANALYSIS VIEW - § 03 Our Reading (15-Act Narrative)
 // ==========================================================
 
 const analysis = {
@@ -273,7 +273,7 @@ function renderAnalysisView() {
   });
 }
 
-// ---- ACT 1 — The Graveyard ----
+// ---- ACT 1 - The Graveyard ----
 function initAct1() {
   const games = GAMES_DATA;
   const median = d3.median(games, (g) => g.alive_ratio);
@@ -412,7 +412,7 @@ function initAct1() {
   brushSel.call(brushObj);
 }
 
-// ---- ACT 2 — Time is not the verdict ----
+// ---- ACT 2 - Time is not the verdict ----
 function initAct2(filter) {
   filter = filter || "all";
   const allGames = GAMES_DATA.filter(
@@ -527,7 +527,7 @@ function initAct2(filter) {
     });
 }
 
-// ---- ACT 3 — Two populations, not one ----
+// ---- ACT 3 - Two populations, not one ----
 function initAct3() {
   const games = GAMES_DATA;
   const margin = { top: 20, right: 24, bottom: 40, left: 60 };
@@ -626,7 +626,7 @@ function initAct3() {
     .text("endurance");
 }
 
-// ---- ACT 5 — Games built not to end ----
+// ---- ACT 5 - Games built not to end ----
 function initAct5() {
   const games = GAMES_DATA.filter(
     (g) =>
@@ -748,7 +748,7 @@ function initAct5() {
     });
 }
 
-// ---- ACT 6 — Genre is a costume ----
+// ---- ACT 6 - Genre is a costume ----
 function initAct6() {
   const games = GAMES_DATA;
   const countMap = d3.rollup(
@@ -861,7 +861,7 @@ function initAct6() {
     .text("median alive ratio");
 }
 
-// ---- ACT 7 — Loved is not alive ----
+// ---- ACT 7 - Loved is not alive ----
 function initAct7() {
   const games = GAMES_DATA.filter(
     (g) => g.ratings_count > 0 && g.rating > 0 && isFinite(g.alive_ratio),
@@ -1064,11 +1064,15 @@ function showQuadrantPanel(q, games) {
   if (guide && q.id === "tr") guide.classList.add("done");
 }
 
-// ---- ACT 8 — Launch size is not destiny ----
+// ---- ACT 8 - Launch size is not destiny ----
 function initAct8() {
   const games = GAMES_DATA.filter(
     (g) =>
-      g.peak_players > 0 && g.current_players >= 0 && isFinite(g.alive_ratio),
+      g.peak_players > 0 &&
+      g.current_players >= 0 &&
+      isFinite(g.alive_ratio) &&
+      g.months_to_peak !== null &&
+      g.series.length >= 6,
   );
   const container = document.getElementById("act8-multiples");
   if (!container) return;
@@ -1078,17 +1082,24 @@ function initAct8() {
     {
       xFn: (d) => d.peak_players,
       yFn: (d) => d.current_players,
+      rXFn: (d) => Math.log(d.peak_players),
+      rYFn: (d) => Math.log(d.current_players),
       xLabel: "peak players (log)",
       yLabel: "current players (log)",
       yLog: true,
       refLine: true,
     },
     {
-      xFn: (d) => d.peak_players,
+      xFn: (d) => d.months_to_peak,
       yFn: (d) => d.alive_ratio,
-      xLabel: "peak players (log)",
+      rXFn: (d) => d.months_to_peak,
+      rYFn: (d) => d.alive_ratio,
+      xLog: false,
+      xLabel: "months to peak players",
       yLabel: "alive ratio",
       yLog: false,
+      yDomain: [0, 1],
+      yTickFormat: d3.format(".0%"),
       refLine: false,
     },
   ];
@@ -1114,28 +1125,41 @@ function initAct8() {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const xVals = games.map(panel.xFn).filter((v) => v > 0);
-    const yVals = games.map(panel.yFn).filter((v) => v > 0);
-    const x = d3.scaleLog().domain(d3.extent(xVals)).range([0, w]).clamp(true);
+    const xVals = games
+      .map(panel.xFn)
+      .filter((v) => (panel.xLog === false ? v >= 0 : v > 0));
+    const yVals = games.map(panel.yFn).filter((v) => v >= 0);
+    const x =
+      panel.xLog === false
+        ? d3.scaleLinear().domain(d3.extent(xVals)).range([0, w]).clamp(true)
+        : d3.scaleLog().domain(d3.extent(xVals)).range([0, w]).clamp(true);
     const y = panel.yLog
       ? d3
           .scaleLog()
           .domain([0.001, d3.max(yVals) * 1.5])
           .range([h, 0])
           .clamp(true)
-      : d3.scaleLinear().domain([0, 1]).range([h, 0]);
+      : d3
+          .scaleLinear()
+          .domain(panel.yDomain || [0, 1])
+          .range([h, 0]);
 
     g.append("g")
       .attr("class", "axis axis-x")
       .attr("transform", `translate(0,${h})`)
-      .call(d3.axisBottom(x).ticks(4).tickFormat(fmtPlayers));
+      .call(
+        d3
+          .axisBottom(x)
+          .ticks(4)
+          .tickFormat(panel.xLog === false ? d3.format("d") : fmtPlayers),
+      );
     g.append("g")
       .attr("class", "axis axis-y")
       .call(
         d3
           .axisLeft(y)
           .ticks(4)
-          .tickFormat(pi === 1 ? d3.format(".0%") : fmtPlayers),
+          .tickFormat(panel.yTickFormat || fmtPlayers),
       );
 
     if (panel.refLine) {
@@ -1151,27 +1175,35 @@ function initAct8() {
     }
 
     g.selectAll("circle")
-      .data(games.filter((d) => panel.xFn(d) > 0 && panel.yFn(d) > 0))
+      .data(
+        games.filter(
+          (d) =>
+            (panel.xLog === false ? panel.xFn(d) >= 0 : panel.xFn(d) > 0) &&
+            panel.yFn(d) >= 0,
+        ),
+      )
       .join("circle")
       .attr("cx", (d) => x(panel.xFn(d)))
-      .attr("cy", (d) => y(Math.max(0.001, panel.yFn(d))))
+      .attr("cy", (d) =>
+        y(panel.yLog ? Math.max(0.001, panel.yFn(d)) : panel.yFn(d)),
+      )
       .attr("r", 2)
       .attr("fill", (d) => ALIVE_SCALE(d.alive_ratio))
       .attr("opacity", 0.35);
 
     const r = pearsonR(
       games.filter((d) => panel.xFn(d) > 0 && panel.yFn(d) > 0),
-      panel.xFn,
-      panel.yFn,
+      panel.rXFn,
+      panel.rYFn,
     );
     g.append("text")
-      .attr("x", w - 4)
-      .attr("y", 14)
+      .attr("x", w - 25)
+      .attr("y", 0)
       .attr("text-anchor", "end")
       .attr("font-size", 9)
       .attr("fill", "var(--ink-dim)")
       .attr("font-family", "var(--mono)")
-      .text("r = " + r.toFixed(2));
+      .text("Pearson R = " + r.toFixed(2));
     g.append("text")
       .attr("class", "axis-label")
       .attr("x", w / 2)
@@ -1188,7 +1220,7 @@ function initAct8() {
   });
 }
 
-// ---- ACT 10 — Release month is a rounding error ----
+// ---- ACT 10 - Release month is a rounding error ----
 function initAct10(filter) {
   filter = filter || "all";
   let games = GAMES_DATA;
@@ -1291,7 +1323,7 @@ function initAct10(filter) {
       .attr("opacity", 0.8)
       .attr("cursor", "pointer")
       .on("mouseover", () => {
-        tooltip.innerHTML = `<strong>${monthNames[m]}</strong><br>Peak: ${fmtPlayers(Math.round(peakVals[m]))}<br>Alive: ${(aliveVals[m] * 100).toFixed(1)}%<br>N: ${games.filter((g) => g.release_month === m).length}`;
+        tooltip.innerHTML = `<strong>${monthNames[m]}</strong><br>Peak: ${fmtPlayers(Math.round(peakVals[m]))}<br>Alive Rate: ${(aliveVals[m] * 100).toFixed(1)}%<br>Games: ${games.filter((g) => g.release_month === m).length}`;
         tooltip.classList.add("visible");
         const guide = document.getElementById("act10-guide");
         if (guide) guide.classList.add("done");
@@ -1381,7 +1413,7 @@ function initAct10(filter) {
     });
 }
 
-// ---- ACT 11 — The DNA of endurance ----
+// ---- ACT 11 - The DNA of endurance ----
 function initAct11(sortKey) {
   sortKey = sortKey || "lift";
   const immortals = GAMES_DATA.filter((g) => g.archetype === "immortal");
@@ -1525,7 +1557,7 @@ function initAct11(sortKey) {
     .text("immortal →");
 }
 
-// ---- ACT 12 — Attention is oxygen ----
+// ---- ACT 12 - Attention is oxygen ----
 function initAct12(signal) {
   signal = signal || "twitch";
   const fieldMap = {
@@ -1629,7 +1661,7 @@ function initAct12(signal) {
     });
 }
 
-// ---- ACT 13 — The shape of a survivor ----
+// ---- ACT 13 - The shape of a survivor ----
 function initAct13(arch) {
   arch = arch || "all";
 
@@ -1765,7 +1797,7 @@ function initAct13(arch) {
     });
 }
 
-// ---- ACT 14 — The mortality index, ranked ----
+// ---- ACT 14 - The mortality index, ranked ----
 function initAct14(sortMode) {
   sortMode = sortMode || "top";
   const ranked = mortalityIndex(GAMES_DATA);
@@ -1859,7 +1891,7 @@ function initAct14(sortMode) {
     });
 }
 
-// ---- ACT 15 — Now make your own reading ----
+// ---- ACT 15 - Now make your own reading ----
 function initAct15() {
   const top5immortal = immortalsTop(5);
   const top5fading = fadingAAAGames().slice(0, 5);

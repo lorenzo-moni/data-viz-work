@@ -226,6 +226,20 @@ async function loadGameData() {
       alive_ratio = positiveOutcomeScore;
     }
 
+    let months_to_peak = null;
+    if (series.length > 0) {
+      const peakIdx = series.reduce(
+        (mi, s, i) => (s.players > series[mi].players ? i : mi),
+        0,
+      );
+      const relDate = new Date(year, release_month, 1);
+      const obsDate = new Date(series[peakIdx].month);
+      const mtp =
+        (obsDate.getFullYear() - relDate.getFullYear()) * 12 +
+        (obsDate.getMonth() - relDate.getMonth());
+      months_to_peak = Math.max(0, mtp);
+    }
+
     games.push({
       id: appId || idx + 1,
       name: row.name || `Game ${idx + 1}`,
@@ -234,6 +248,7 @@ async function loadGameData() {
       peak_players: peakPlayers,
       avg_players: averagePlayers,
       alive_ratio,
+      months_to_peak,
       genres,
       platforms: normalizePlatforms(row.parent_platforms || row.platforms),
       rating: +row.rating || 0,

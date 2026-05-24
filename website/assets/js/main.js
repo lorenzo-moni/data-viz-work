@@ -1,5 +1,5 @@
 // ==========================================================
-// MAIN — orchestrator: state, router, controls, selection UI, bootstrap
+// MAIN - orchestrator: state, router, controls, selection UI, bootstrap
 // ==========================================================
 
 // Populated asynchronously by loadGameData() before any chart renders
@@ -72,8 +72,6 @@ d3.selectAll("[data-view]").on("click", function () {
 // ==========================================================
 // SELECTION UI (tray + nav state)
 // ==========================================================
-
-const TS_PALETTE = d3.schemeTableau10;
 
 function colorForGame(id) {
   if (!sandbox.colorByGameId.has(id)) {

@@ -1,5 +1,5 @@
 // ==========================================================
-// CHART TOOLBAR — shared fullscreen + zoom toolbar helper
+// CHART TOOLBAR - shared fullscreen + zoom toolbar helper
 // ==========================================================
 
 const _toolbarRegistry = new Map(); // wrapEl → { svgEl, chartObj, reinit, hasOverlayPanel }
@@ -7,9 +7,9 @@ let _fullscreenListenerAttached = false;
 let _reparentedEls = []; // { el, parent, next, fsClass }
 
 const _OVERLAY_ITEMS = [
-  { sel: ".controls",       fsClass: "is-fullscreen-controls" },
-  { sel: "#game-card",      fsClass: "is-fullscreen-card"     },
-  { sel: "#selection-tray", fsClass: "is-fullscreen-tray"     },
+  { sel: ".controls", fsClass: "is-fullscreen-controls" },
+  { sel: "#game-card", fsClass: "is-fullscreen-card" },
+  { sel: "#selection-tray", fsClass: "is-fullscreen-tray" },
 ];
 
 const _ICON_EXPAND = `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -26,8 +26,14 @@ const _ICON_COMPRESS = `<svg viewBox="0 0 16 16" width="13" height="13" fill="no
   <polyline points="14,10 10,10 10,14"/>
 </svg>`;
 
-function setupChartToolbar({ wrapEl, svgEl, chartObj, reinit, hasOverlayPanel = false }) {
-  // Remove any existing toolbar (idempotent — safe to call on reinit)
+function setupChartToolbar({
+  wrapEl,
+  svgEl,
+  chartObj,
+  reinit,
+  hasOverlayPanel = false,
+}) {
+  // Remove any existing toolbar (idempotent - safe to call on reinit)
   const existing = wrapEl.querySelector(".chart-toolbar");
   if (existing) existing.remove();
 
@@ -45,13 +51,19 @@ function setupChartToolbar({ wrapEl, svgEl, chartObj, reinit, hasOverlayPanel = 
   toolbar.querySelector(".ct-zoom-in").addEventListener("click", (e) => {
     e.stopPropagation();
     if (!chartObj.zoom) return;
-    d3.select(svgEl).transition().duration(200).call(chartObj.zoom.scaleBy, 1.4);
+    d3.select(svgEl)
+      .transition()
+      .duration(200)
+      .call(chartObj.zoom.scaleBy, 1.4);
   });
 
   toolbar.querySelector(".ct-zoom-out").addEventListener("click", (e) => {
     e.stopPropagation();
     if (!chartObj.zoom) return;
-    d3.select(svgEl).transition().duration(200).call(chartObj.zoom.scaleBy, 1 / 1.4);
+    d3.select(svgEl)
+      .transition()
+      .duration(200)
+      .call(chartObj.zoom.scaleBy, 1 / 1.4);
   });
 
   toolbar.querySelector(".ct-fullscreen").addEventListener("click", (e) => {
@@ -87,14 +99,19 @@ function _onFullscreenChange() {
       btn.title = isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen";
     }
 
-    // Re-parent overlay elements (filters, game card, selection tray) — landscape only
+    // Re-parent overlay elements (filters, game card, selection tray) - landscape only
     if (opts.hasOverlayPanel) {
       if (isFullscreen) {
         _reparentedEls = [];
         for (const { sel, fsClass } of _OVERLAY_ITEMS) {
           const el = document.querySelector(sel);
           if (!el) continue;
-          _reparentedEls.push({ el, parent: el.parentNode, next: el.nextSibling, fsClass });
+          _reparentedEls.push({
+            el,
+            parent: el.parentNode,
+            next: el.nextSibling,
+            fsClass,
+          });
           wrapEl.appendChild(el);
           el.classList.add(fsClass);
         }
@@ -108,8 +125,10 @@ function _onFullscreenChange() {
     }
 
     // Reinit the chart so it recomputes dimensions for the new size
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      opts.reinit();
-    }));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        opts.reinit();
+      }),
+    );
   }
 }

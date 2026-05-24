@@ -1,5 +1,5 @@
 // ==========================================================
-// LANDSCAPE — § 01 The Landscape chart, interactions, game card
+// LANDSCAPE - § 01 The Landscape chart, interactions, game card
 // ==========================================================
 
 const chart = {
@@ -204,8 +204,6 @@ function renderChart(games) {
     .attr("r", 0)
     .attr("fill", (d) => ALIVE_SCALE(d.alive_ratio))
     .style("opacity", 0)
-    .on("mouseover", onHover)
-    .on("mouseout", onHoverOut)
     .on("click", onBubbleClick);
 
   enter
@@ -302,7 +300,7 @@ d3.select("#toggle-selection").on("click", () => {
 });
 
 // ==========================================================
-// CONTROLS — filters, search, sliders
+// CONTROLS - filters, search, sliders
 // ==========================================================
 
 function setupGenreChips() {
