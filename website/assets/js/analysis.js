@@ -151,11 +151,21 @@ function buildDecayCurve(games) {
   games
     .filter((g) => g.year >= 2013 && g.series.length >= 6)
     .forEach((g) => {
-      const peakLocal = g.peak_players;
-      if (peakLocal < 100) return;
-      const relMs = new Date(g.year, g.release_month, 1).getTime();
+      const relDate = new Date(g.year, g.release_month, 1);
+
+      // Find this game's player count at month 6 post-release to use as baseline
+      let baselineAt6 = null;
       g.series.forEach(({ month, peak: monthPeak }) => {
-        const relDate = new Date(g.year, g.release_month, 1);
+        const obsDate = new Date(month);
+        const mSince =
+          (obsDate.getFullYear() - relDate.getFullYear()) * 12 +
+          (obsDate.getMonth() - relDate.getMonth());
+        if (mSince === 6) baselineAt6 = monthPeak;
+      });
+
+      if (!baselineAt6 || baselineAt6 < 100) return;
+
+      g.series.forEach(({ month, peak: monthPeak }) => {
         const obsDate = new Date(month);
         const mSince =
           (obsDate.getFullYear() - relDate.getFullYear()) * 12 +
@@ -163,7 +173,7 @@ function buildDecayCurve(games) {
 
         if (mSince < 0 || mSince > MAX_MONTHS) return;
         if (!buckets.has(mSince)) buckets.set(mSince, []);
-        buckets.get(mSince).push(monthPeak / peakLocal);
+        buckets.get(mSince).push(monthPeak / baselineAt6);
       });
     });
   return Array.from(buckets, ([key, vals]) => {
@@ -176,7 +186,7 @@ function buildDecayCurve(games) {
       count: sorted.length,
     };
   })
-    .filter((d) => d.count >= 10 && d.key >= 3)
+    .filter((d) => d.count >= 10 && d.key >= 6)
     .sort((a, b) => d3.ascending(a.key, b.key));
 }
 
@@ -1673,8 +1683,8 @@ function initAct10(s) {
 }
 
 // ---- ACT 11- The shape of a survivor ----
-function initAct11(arch) {
-  arch = arch || "all";
+function initAct11(archs) {
+  archs = archs && archs.length ? archs : ["immortal"];
 
   const margin = { top: 24, right: 24, bottom: 44, left: 56 };
   const svgEl = document.getElementById("act11-chart");
@@ -1692,7 +1702,31 @@ function initAct11(arch) {
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
   const x = d3.scaleLinear().domain([0, 72]).range([0, w]);
-  const y = d3.scaleLinear().domain([0, 1]).range([h, 0]);
+
+  const allArchTypes = ["immortal", "aaa", "fading_aaa", "slow_burn", "mid"];
+
+  const curvesByArch = archs.map((a) => ({
+    arch: a,
+    curve: buildDecayCurve(GAMES_DATA.filter((d) => d.archetype === a)).filter(
+      (d) => d.key <= 72,
+    ),
+  }));
+
+  const allCurves = allArchTypes.map((a) =>
+    buildDecayCurve(GAMES_DATA.filter((d) => d.archetype === a)).filter(
+      (d) => d.key <= 72,
+    ),
+  );
+  const yMax =
+    Math.ceil(
+      (d3.max(allCurves.flatMap((curve) => curve.map((d) => d.median))) || 1) *
+        10,
+    ) / 10;
+
+  const y = d3
+    .scaleLinear()
+    .domain([0, Math.max(1, yMax)])
+    .range([h, 0]);
 
   g.append("g")
     .attr("class", "axis axis-x")
@@ -1712,25 +1746,11 @@ function initAct11(arch) {
     .selectAll("text")
     .remove();
 
-  const archTypes =
-    arch === "all"
-      ? ["immortal", "aaa", "fading_aaa", "slow_burn", "mid"]
-      : [arch];
-
-  archTypes.forEach((a) => {
-    const subset = GAMES_DATA.filter((d) => d.archetype === a);
-    const curve = buildDecayCurve(subset).filter((d) => d.key <= 72);
+  curvesByArch.forEach(({ arch: a, curve }) => {
     if (curve.length < 3) return;
 
     const color = ARCHETYPE_COLOR[a] || "#a69a8c";
-    const opacity = arch === "all" ? 0.7 : 1;
-
-    const area = d3
-      .area()
-      .x((d) => x(d.key))
-      .y0((d) => y(d.p25))
-      .y1((d) => y(d.p90))
-      .curve(d3.curveCatmullRom);
+    const opacity = archs.length > 1 ? 0.7 : 1;
 
     const line = d3
       .line()
@@ -1738,11 +1758,6 @@ function initAct11(arch) {
       .y((d) => y(d.median))
       .curve(d3.curveCatmullRom);
 
-    g.append("path")
-      .datum(curve)
-      .attr("fill", color)
-      .attr("opacity", 0.12)
-      .attr("d", area);
     g.append("path")
       .datum(curve)
       .attr("fill", "none")
@@ -1760,27 +1775,9 @@ function initAct11(arch) {
         .attr("font-size", 9)
         .attr("fill", color)
         .attr("font-family", "var(--mono)")
-        .text(a.replace("_", " "));
+        .text(ARCHETYPE_LABELS[a]);
     }
   });
-
-  // Annotations
-  if (arch === "all" || arch === "immortal") {
-    g.append("text")
-      .attr("class", "quadrant-label")
-      .attr("x", x(36))
-      .attr("y", y(0.45))
-      .attr("text-anchor", "middle")
-      .text("plateau →");
-  }
-  if (arch === "all" || arch === "fading_aaa") {
-    g.append("text")
-      .attr("class", "quadrant-label")
-      .attr("x", x(8))
-      .attr("y", y(0.15))
-      .attr("text-anchor", "middle")
-      .text("cliff ↓");
-  }
 
   g.append("text")
     .attr("class", "axis-label")
@@ -1794,16 +1791,27 @@ function initAct11(arch) {
     .attr("x", -h / 2)
     .attr("y", -44)
     .attr("text-anchor", "middle")
-    .text("players / peak");
+    .text("players / 6-month baseline");
 
   d3.select("#act11-chips")
     .selectAll(".act-chip")
     .on("click", function () {
-      d3.select("#act11-chips").selectAll(".act-chip").classed("active", false);
-      d3.select(this).classed("active", true);
-      initAct11(this.dataset.arch);
+      const chip = d3.select(this);
+      const isActive = chip.classed("active");
+      const activeChips = d3
+        .select("#act11-chips")
+        .selectAll(".act-chip.active");
+      if (isActive && activeChips.size() === 1) return;
+      chip.classed("active", !isActive);
+      const selected = [];
+      d3.select("#act11-chips")
+        .selectAll(".act-chip.active")
+        .each(function () {
+          selected.push(this.dataset.arch);
+        });
+      initAct11(selected);
       const guide = document.getElementById("act11-guide");
-      if (guide && this.dataset.arch === "fading_aaa")
+      if (guide && selected.includes("aaa") && selected.includes("fading_aaa"))
         guide.classList.add("done");
     });
 }
