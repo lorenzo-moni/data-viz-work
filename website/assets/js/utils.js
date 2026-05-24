@@ -15,9 +15,10 @@ const ARCHETYPE_COLOR = {
   mid: "#a69a8c",
 };
 
+// Domain is set dynamically in data.js after computing the population median.
+// Placeholder keeps rendering sane if scale is ever read before data loads.
 const ALIVE_SCALE = d3
   .scaleLinear()
-  .domain([0, 0.1, 0.3])
   .range(["#d96c6c", "#e6a356", "#7fc97f"])
   .clamp(true);
 
@@ -37,12 +38,14 @@ function binnedStats(games, keyFn, valFn) {
 }
 
 function pearsonR(data, xFn, yFn) {
-  const xs = data.map(xFn), ys = data.map(yFn);
-  const mx = d3.mean(xs), my = d3.mean(ys);
+  const xs = data.map(xFn),
+    ys = data.map(yFn);
+  const mx = d3.mean(xs),
+    my = d3.mean(ys);
   const num = d3.sum(data, (_, i) => (xs[i] - mx) * (ys[i] - my));
   const den = Math.sqrt(
     d3.sum(data, (_, i) => (xs[i] - mx) ** 2) *
-    d3.sum(data, (_, i) => (ys[i] - my) ** 2)
+      d3.sum(data, (_, i) => (ys[i] - my) ** 2),
   );
   return den === 0 ? 0 : num / den;
 }

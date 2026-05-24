@@ -8,7 +8,6 @@ const chart = {
   xScale: null,
   yScale: null,
   rScale: null,
-  colorScale: null,
   zoom: null,
   width: 0,
   height: 0,
@@ -38,12 +37,6 @@ function initChart() {
   chart.xScale = d3.scaleLinear().range([0, chart.width]);
   chart.yScale = d3.scaleLog().range([chart.height, 0]).clamp(true);
   chart.rScale = d3.scaleSqrt().range([6, 30]);
-  chart.colorScale = d3
-    .scaleDiverging()
-    .domain([0, 0.2, 1])
-    .range(["#d96c6c", "#e6a356", "#7fc97f"])
-    .clamp(true);
-
   chart.g
     .append("g")
     .attr("class", "axis axis-x")
@@ -209,7 +202,7 @@ function renderChart(games) {
     .attr("cx", (d) => chart.xScale(d.year + (d.release_month + 0.5) / 12))
     .attr("cy", (d) => chart.yScale(Math.max(100, d.avg_players)))
     .attr("r", 0)
-    .attr("fill", (d) => chart.colorScale(d.alive_ratio))
+    .attr("fill", (d) => ALIVE_SCALE(d.alive_ratio))
     .style("opacity", 0)
     .on("mouseover", onHover)
     .on("mouseout", onHoverOut)
@@ -223,7 +216,7 @@ function renderChart(games) {
     .attr("cx", (d) => chart.xScale(d.year + (d.release_month + 0.5) / 12))
     .attr("cy", (d) => chart.yScale(Math.max(100, d.avg_players)))
     .attr("r", (d) => chart.rScale(d.peak_players))
-    .attr("fill", (d) => chart.colorScale(d.alive_ratio))
+    .attr("fill", (d) => ALIVE_SCALE(d.alive_ratio))
     .style("opacity", 0.85);
 }
 

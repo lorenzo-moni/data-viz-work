@@ -60,6 +60,8 @@ const THRESHOLDS = {
   IMMORTAL_YEAR_CUTOFF: 2018,
   ALIVE_MIN: null,
   IMMORTAL_MIN: 0.5,
+  ALIVE_MEDIAN: null,
+  DEAD_MAX: 0.1,
 
   FADING_AAA_PEAK_MIN: 100000,
   FADING_AAA_ALIVE_MAX: 0.05,
@@ -221,35 +223,18 @@ async function loadGameData() {
       categories,
       ratings_count: +row.ratings_count || 0,
     });
-
-    const debug = games.filter(
-      (g) =>
-        g.name === "The Elder Scrolls V: Skyrim" || g.name === "Cyberpunk 2077",
-    );
-    debug.forEach((g) => {
-      console.log(g.name, {
-        playing: g.status_playing,
-        beaten: g.status_beaten,
-        dropped: g.status_dropped,
-        owned: g.status_owned,
-        positiveOutcome: g.positive_outcome,
-        alive_ratio: g.alive_ratio,
-      });
-    });
   });
 
-  // Set ALIVE_MIN dynamically to the median alive_ratio across all loaded games.
-  // immortal = above 50% (IMMORTAL_MIN), alive = above median (ALIVE_MIN).
   const _sorted = games
     .map((g) => g.alive_ratio)
     .filter(isFinite)
     .sort((a, b) => a - b);
-  THRESHOLDS.ALIVE_MIN = d3.quantile(_sorted, 0.5) || 0.05;
+  THRESHOLDS.ALIVE_MEDIAN = d3.quantile(_sorted, 0.5) || 0.05;
+  THRESHOLDS.ALIVE_MIN = THRESHOLDS.ALIVE_MEDIAN;
   THRESHOLDS.FADING_AAA_ALIVE_MAX = THRESHOLDS.ALIVE_MIN;
   THRESHOLDS.SLOW_BURN_ALIVE_MIN = THRESHOLDS.ALIVE_MIN;
-  console.log(
-    `ALIVE_MIN (median): ${(THRESHOLDS.ALIVE_MIN * 100).toFixed(2)}%`,
-  );
+
+  ALIVE_SCALE.domain([0, THRESHOLDS.ALIVE_MIN, THRESHOLDS.IMMORTAL_MIN]);
 
   // Classify each game into an archetype using centralized THRESHOLDS.
   games.forEach((g) => {

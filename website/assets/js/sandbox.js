@@ -249,10 +249,7 @@ function renderSandbox() {
       .domain(genres)
       .range(["#e6a356", "#7fc97f", "#d96c6c", "#a5b1e4", "#ddb892", "#c8a2d6"]);
   } else if (sandbox.colorField === "alive_ratio") {
-    colorScale = d3
-      .scaleLinear()
-      .domain([0, 0.15, 0.3])
-      .range(["#d96c6c", "#e6a356", "#7fc97f"]);
+    colorScale = ALIVE_SCALE;
   } else {
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain([2012, 2025]);
   }
