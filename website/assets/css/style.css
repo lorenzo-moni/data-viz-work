@@ -1861,7 +1861,7 @@ input[type="range"]::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-/* Sort chips header (Act 11) */
+/* Sort chips header (Act 9) */
 .sort-chips {
   display: flex;
   gap: 8px;
@@ -1928,7 +1928,7 @@ input[type="range"]::-moz-range-thumb {
   background: var(--alive);
 }
 
-/* Mortality index list (Act 15) */
+/* Mortality index list (Act 13) */
 .mortality-list-header {
   display: grid;
   grid-template-columns: 28px 1fr 64px 80px 80px;

@@ -239,7 +239,7 @@
     <div class="view-header">
       <div class="view-number">§ 03 - Our Reading</div>
       <p class="view-intro">
-        Fifteen findings. One thesis: most games die fast, but the ones that survive share a handful of measurable traits.
+        Thirteen findings. One thesis: most games die fast, but the ones that survive share a handful of measurable traits.
         <strong>Every chart below is computed live from the dataset.</strong>
       </p>
     </div>
@@ -320,19 +320,19 @@
     </section>
 
 
-    <!-- ACT 05 - Three patterns, not a hierarchy -->
-    <section class="story-act" data-act="5">
+    <!-- ACT 04 - Three patterns, not a hierarchy -->
+    <section class="story-act" data-act="4">
       <div class="story-prose">
-        <div class="act-label">§ 05</div>
+        <div class="act-label">§ 04</div>
         <h2 class="act-title">Three patterns, not a hierarchy</h2>
         <p class="story-lead">Pure-online games have the longest reach upward, but most cluster near the floor with everyone else.</p>
         <p>Sort by game type and the shape becomes visible. All three distributions are bottom-heavy: most games die. But the top tail differs. Pure-online produces the rare blockbusters that climb above 70%. Story games top out lower but maintain a denser mid-range. Hybrids inherit a bit of both.</p>
         <p class="story-thesis">Design intent doesn't predict success, it shapes how a game ages. A multiplayer game that survives can reach extraordinary heights; a story game that survives lives more modestly but more reliably. Two definitions of "alive" produce two shapes.</p>
       </div>
       <div class="story-chart-wrap" style="position:relative">
-        <div class="story-chart"><svg id="act5-chart"></svg></div>
+        <div class="story-chart"><svg id="act4-chart"></svg></div>
         <p class="story-caption">Beeswarm by game type. Y = alive ratio. Color = archetype. Click any dot to add to selection.</p>
-        <div class="story-guide" id="act5-guide">
+        <div class="story-guide" id="act4-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Hover the highest dot in the "story" column.</p>
           <p class="guide-expected">Even the story outliers carry sandbox or co-op tags. The exceptions prove the rule.</p>
@@ -340,38 +340,38 @@
       </div>
     </section>
 
-    <!-- ACT 06 - Genre is a costume -->
-    <section class="story-act" data-act="6">
+    <!-- ACT 05 - Genre is a costume -->
+    <section class="story-act" data-act="5">
       <div class="story-prose">
-        <div class="act-label">§ 06</div>
+        <div class="act-label">§ 05</div>
         <h2 class="act-title">Genre is a costume</h2>
         <p class="story-lead">Nominal genre labels barely predict survival.</p>
         <p>Group by top-level genre and the median alive ratio barely moves. Action, RPG, Strategy, the labels map loosely to what players actually do. The signal hides one layer deeper.</p>
         <p class="story-thesis">Genre is what's on the box. Survival is what's in the loop, the behavioral tag DNA underneath the marketing label.</p>
       </div>
       <div class="story-chart-wrap">
-        <div class="story-chart"><svg id="act6-chart"></svg></div>
+        <div class="story-chart"><svg id="act5-chart"></svg></div>
         <p class="story-caption">Median alive ratio by genre with p25–p90 whiskers. Dashed line = global median. Genre is what's on the box.</p>
       </div>
     </section>
 
-    <!-- ACT 07 - Loved is alive -->
-    <section class="story-act" data-act="7">
+    <!-- ACT 06 - Loved is alive -->
+    <section class="story-act" data-act="6">
       <div class="story-prose">
-        <div class="act-label">§ 07</div>
+        <div class="act-label">§ 06</div>
         <h2 class="act-title">Loved is alive</h2>
         <p class="story-lead">Community love is the strongest predictor of survival we found.</p>
-        <p>Of the <span id="act7-loved-total">-</span> well-rated games (RAWG rating ≥ 3.5), <span id="act7-loved-alive">-</span> are still meaningfully alive today: <span id="act7-loved-pct">-</span>. Players who love a game tend to stick around, return, or recommend it. The correlation isn't perfect, but it's stronger than any other signal in this dataset.</p>
-        <p class="story-thesis">Still, the beloved aren't all eternal. <span id="act7-beloved-buried">-</span> well-rated single-player titles have moved past the moment of active play, finished, archived, and remembered. Their love endures even when their lobbies don't.</p>
+        <p>Of the <span id="act6-loved-total">-</span> well-rated games (RAWG rating ≥ 3.5), <span id="act6-loved-alive">-</span> are still meaningfully alive today: <span id="act6-loved-pct">-</span>. Players who love a game tend to stick around, return, or recommend it. The correlation isn't perfect, but it's stronger than any other signal in this dataset.</p>
+        <p class="story-thesis">Still, the beloved aren't all eternal. <span id="act6-beloved-buried">-</span> well-rated single-player titles have moved past the moment of active play, finished, archived, and remembered. Their love endures even when their lobbies don't.</p>
       </div>
       <div class="story-chart-wrap" style="position:relative">
-        <div class="story-chart"><svg id="act7-chart"></svg></div>
-        <div class="cohort-panel hidden" id="act7-panel">
-          <div class="cohort-panel-title" id="act7-panel-title">Top games in quadrant</div>
-          <div id="act7-panel-list"></div>
+        <div class="story-chart"><svg id="act6-chart"></svg></div>
+        <div class="cohort-panel hidden" id="act6-panel">
+          <div class="cohort-panel-title" id="act6-panel-title">Top games in quadrant</div>
+          <div id="act6-panel-list"></div>
         </div>
         <p class="story-caption">Rating (RAWG 0–5) × alive ratio. Click a quadrant to drill into its top games.</p>
-        <div class="story-guide" id="act7-guide">
+        <div class="story-guide" id="act6-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Click the bottom-right quadrant, high rating, low alive ratio.</p>
           <p class="guide-expected">A long list of well-reviewed titles that most players completed and left. Quality earns admiration; it doesn't guarantee staying.</p>
@@ -379,38 +379,38 @@
       </div>
     </section>
 
-    <!-- ACT 08 - Two paths to longevity -->
-    <section class="story-act" data-act="8">
+    <!-- ACT 07 - Two paths to longevity -->
+    <section class="story-act" data-act="7">
   <div class="story-prose">
-    <div class="act-label">§ 08</div>
+    <div class="act-label">§ 07</div>
     <h2 class="act-title">The slope after the peak</h2>
     <p class="story-lead">Some games explode at launch. Others take years to find their audience. The difference shows up in who survives.</p>
     <p>The left chart tells a retention story: games close to the diagonal kept their players. The right chart asks how they got there: fast or slow. Big launches cluster near zero months to peak. But months to peak alone predicts little: the path to the top matters less than what you build once you get there. </p>
     <p class="story-thesis">Most games peak the day they launch, but when you peak says nothing about how long you last.</p>
   </div>
   <div class="story-chart-wrap">
-    <div class="act-multiples" id="act8-multiples" style="grid-template-columns:repeat(2,1fr)"></div>
+    <div class="act-multiples" id="act7-multiples" style="grid-template-columns:repeat(2,1fr)"></div>
     <p class="story-caption">Left: peak × current players (log-log); diagonal = perfect retention. Right: peak × months from release to peak, colored by alive ratio. Big launches cluster near zero.</p>
   </div>
 </section>
 
-    <!-- ACT 10 - Release month is a rounding error -->
-    <section class="story-act" data-act="10">
+    <!-- ACT 08 - Release month is a rounding error -->
+    <section class="story-act" data-act="8">
       <div class="story-prose">
-        <div class="act-label">§ 10</div>
+        <div class="act-label">§ 08</div>
         <h2 class="act-title">Release month is a rounding error</h2>
         <p class="story-lead">November launches peak higher. The surviving share is the same.</p>
         <p>Q4 launches outperform in absolute player numbers at launch, the holiday window is real. Six years later, the retention percentage is indistinguishable. The calendar matters to marketing, not to memory.</p>
         <p class="story-thesis">Timing the launch is a launch-week optimization. It does not change the structural question of whether the game has a reason to persist.</p>
       </div>
       <div class="story-chart-wrap">
-        <div class="story-chart"><svg id="act10-chart"></svg></div>
-        <div class="act-chips" id="act10-chips">
+        <div class="story-chart"><svg id="act8-chart"></svg></div>
+        <div class="act-chips" id="act8-chips">
           <button class="act-chip active" data-filter="all">All</button>
           <button class="act-chip" data-filter="aaa">AAA only</button>
         </div>
         <p class="story-caption">Radial bars: outer ring = median peak players (log), inner ring = median alive ratio. One ring swings, the other stays flat.</p>
-        <div class="story-guide" id="act10-guide">
+        <div class="story-guide" id="act8-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Hover November, then hover March.</p>
           <p class="guide-expected">The outer ring (peak) varies across months. The inner ring (alive ratio) stays flat. The calendar is a marketing concern.</p>
@@ -418,25 +418,25 @@
       </div>
     </section>
 
-    <!-- ACT 11 - The DNA of immortality -->
-    <section class="story-act" data-act="11">
+    <!-- ACT 09 - The DNA of immortality -->
+    <section class="story-act" data-act="9">
       <div class="story-prose">
-        <div class="act-label">§ 11</div>
+        <div class="act-label">§ 09</div>
         <h2 class="act-title">The DNA of immortality</h2>
         <p class="story-lead">Not all tags are equal. Immortal games cluster around one idea: systems that never resolve.</p>
         <p>Moddable, MOBA, MMORPG, Open World aren't genres, they're architectures for infinite play. Story Rich and Singleplayer, by contrast, skew toward the graveyard, not because they're worse games, but because they end.</p>
         <p class="story-thesis">Immortal games are endless worlds, mortal games are just stories.</p>
       </div>
       <div class="story-chart-wrap">
-        <div class="sort-chips" id="act11-sort-chips">
+        <div class="sort-chips" id="act9-sort-chips">
           <button class="sort-chip active" data-sort="lift">Lift</button>
           <button class="sort-chip" data-sort="immortal">Immortal freq</button>
           <button class="sort-chip" data-sort="mortal">Mortal freq</button>
           <button class="sort-chip" data-sort="alpha">A–Z</button>
         </div>
-        <div class="story-chart"><svg id="act11-chart"></svg></div>
+        <div class="story-chart"><svg id="act9-chart"></svg></div>
         <p class="story-caption">Log-ratio P(tag|immortal) / P(tag|mortal). Green = immortal-leaning, red = graveyard-leaning.</p>
-        <div class="story-guide" id="act11-guide">
+        <div class="story-guide" id="act9-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Sort by Immortal frequency, which tags appear most often in games that lasted.</p>
           <p class="guide-expected">The architecture of survival emerges: Open World, Sandbox, Survival. This are structural commitments to endless play.</p>
@@ -444,39 +444,39 @@
       </div>
     </section>
 
-    <!-- ACT 12 - Attention is oxygen -->
-    <section class="story-act" data-act="12">
+    <!-- ACT 10 - Attention is oxygen -->
+    <section class="story-act" data-act="10">
       <div class="story-prose">
-        <div class="act-label">§ 12</div>
+        <div class="act-label">§ 10</div>
         <h2 class="act-title">The hum of the community</h2>
         <p class="story-lead">Living games keep generating Reddit threads. Dying ones go quieter, but the numbers tell a messier story.</p>
         <p>Reddit post count should be a clean proxy for organic community discussion: no algorithm, no marketing spend, just players who care enough to post. And the correlation with alive ratio is positive — but weak. Reddit communities outlive the games themselves: r/Skyrim keeps posting long after the Steam numbers have faded. A dead game can carry a loud subreddit. A thriving one can have almost none.</p>
         <p class="story-thesis">Social noise and player retention don't always speak the same language.</p>
-        <div class="hero-stat-group" id="act12-stats" style="margin-top:20px">
+        <div class="hero-stat-group" id="act10-stats" style="margin-top:20px">
           <div class="hero-stat">
-            <div class="hero-num" id="act12-r">-</div>
+            <div class="hero-num" id="act10-r">-</div>
             <div class="hero-label">Pearson r (Reddit count vs alive ratio)</div>
           </div>
         </div>
       </div>
       <div class="story-chart-wrap">
-        <div class="story-chart"><svg id="act12-chart"></svg></div>
+        <div class="story-chart"><svg id="act10-chart"></svg></div>
         <p class="story-caption">Reddit post count × alive ratio (log-log). Color = archetype. The cloud is wide: many dead games still carry a large Reddit footprint from their past.</p>
       </div>
     </section>
 
-    <!-- ACT 13 - The shape of a survivor -->
-    <section class="story-act" data-act="13">
+    <!-- ACT 11 - The shape of a survivor -->
+    <section class="story-act" data-act="11">
       <div class="story-prose">
-        <div class="act-label">§ 13</div>
+        <div class="act-label">§ 11</div>
         <h2 class="act-title">The shape of a survivor</h2>
         <p class="story-lead">Two characteristic curves. The plateau and the cliff.</p>
         <p>Normalized to their own peak, immortal games flatten after the initial drop. Fading AAA titles follow a steep cliff with no recovery. The shape of the curve is the story, the plateau is the goal.</p>
         <p class="story-thesis">Survival is not just a state, it is a trajectory. Games that survive share a recognizable decay profile: steep early loss, then a floor that holds.</p>
       </div>
       <div class="story-chart-wrap">
-        <div class="story-chart"><svg id="act13-chart"></svg></div>
-        <div class="act-chips" id="act13-chips">
+        <div class="story-chart"><svg id="act11-chart"></svg></div>
+        <div class="act-chips" id="act11-chips">
           <button class="act-chip active" data-arch="all">All</button>
           <button class="act-chip" data-arch="immortal">Immortal</button>
           <button class="act-chip" data-arch="aaa">AAA</button>
@@ -485,7 +485,7 @@
           <button class="act-chip" data-arch="mid">Mid</button>
         </div>
         <p class="story-caption">Median player count / peak (months since release). Ribbons = p25–p90 band. Decay curves from 2013-onward games with ≥6 months data.</p>
-        <div class="story-guide" id="act13-guide">
+        <div class="story-guide" id="act11-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Isolate "Fading AAA", the high-budget high-launch titles.</p>
           <p class="guide-expected">A steep cliff with almost no floor. Early scale does not prevent the drop, it just makes it more visible.</p>
@@ -493,17 +493,17 @@
       </div>
     </section>
 
-    <!-- ACT 14 - The mortality index, ranked -->
-    <section class="story-act" data-act="14">
+    <!-- ACT 12 - The mortality index, ranked -->
+    <section class="story-act" data-act="12">
       <div class="story-prose">
-        <div class="act-label">§ 14</div>
+        <div class="act-label">§ 12</div>
         <h2 class="act-title">The mortality index, ranked</h2>
         <p class="story-lead">One score. Six signals. All the prior chapters folded in.</p>
         <p>Alive ratio, playing rate, minus beaten rate, plus playtime, Reddit/yr, Twitch/yr, min-max scaled to 0–100. The top 25 are exactly the games whose names you expected, plus a few surprises.</p>
         <p class="story-thesis">No single metric cleanly separates survivors. The composite index ranks them more honestly, and the "Biggest movers" view shows which games single-metric ranking misses.</p>
       </div>
       <div class="story-chart-wrap">
-        <div class="sort-chips" id="act14-sort-chips">
+        <div class="sort-chips" id="act12-sort-chips">
           <button class="sort-chip active" data-sort="top">Top 25</button>
           <button class="sort-chip" data-sort="bottom">Bottom 25</button>
           <button class="sort-chip" data-sort="movers">Biggest movers</button>
@@ -515,9 +515,9 @@
           <span>Trend</span>
           <span>Alive</span>
         </div>
-        <ul class="mortality-list" id="act14-list"></ul>
+        <ul class="mortality-list" id="act12-list"></ul>
         <p class="story-caption">Mortality index = alive(1.0) + playing(0.5) − beaten(0.3) + playtime(0.3) + reddit/yr(0.2) + twitch/yr(0.2), p99-clipped and min-max scaled.</p>
-        <div class="story-guide" id="act14-guide">
+        <div class="story-guide" id="act12-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Switch to "Biggest movers", games the composite re-ranks vs raw alive ratio.</p>
           <p class="guide-expected">Slow-burns climb; one-hit AAAs drop. The index sees past launch hype to what actually lasted.</p>
@@ -525,10 +525,10 @@
       </div>
     </section>
 
-    <!-- ACT 15 - Now make your own reading -->
-    <section class="story-act" data-act="15">
+    <!-- ACT 13 - Now make your own reading -->
+    <section class="story-act" data-act="13">
       <div class="story-prose">
-        <div class="act-label">§ 15</div>
+        <div class="act-label">§ 13</div>
         <h2 class="act-title">Now make your own reading</h2>
         <p class="story-lead">Every claim above is testable in the sandbox.</p>
         <p>We've identified the survivors: immortal games with stable audiences, fading AAA titles that peaked and fell, and slow-burn games that quietly built their communities. Add any of them to your selection and stress-test the argument.</p>
@@ -538,21 +538,21 @@
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
           <div>
             <div class="cohort-panel-title" style="color:var(--alive);margin-bottom:8px">Immortals</div>
-            <div id="act15-immortals" class="drill-list"></div>
+            <div id="act13-immortals" class="drill-list"></div>
           </div>
           <div>
             <div class="cohort-panel-title" style="color:var(--dying);margin-bottom:8px">Fading AAA</div>
-            <div id="act15-fading" class="drill-list"></div>
+            <div id="act13-fading" class="drill-list"></div>
           </div>
           <div>
             <div class="cohort-panel-title" style="color:#8ab4ff;margin-bottom:8px">Slow Burns</div>
-            <div id="act15-slowburn" class="drill-list"></div>
+            <div id="act13-slowburn" class="drill-list"></div>
           </div>
         </div>
         <div style="text-align:center;margin-top:20px">
-          <button class="btn-primary" id="act15-cta">Open all in Sandbox →</button>
+          <button class="btn-primary" id="act13-cta">Open all in Sandbox →</button>
         </div>
-        <div class="story-guide" id="act15-guide">
+        <div class="story-guide" id="act13-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Click individual games to add them, or use "Open all in Sandbox" to load all 15.</p>
           <p class="guide-expected">Fifteen games chosen to embody, and challenge, the argument you just read. Compare them on any axis in the sandbox.</p>

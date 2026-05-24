@@ -1,5 +1,5 @@
 // ==========================================================
-// ANALYSIS VIEW - § 03 Our Reading (15-Act Narrative)
+// ANALYSIS VIEW - § 03 Our Reading (13-Act Narrative)
 // ==========================================================
 
 const analysis = {
@@ -225,14 +225,14 @@ function renderAnalysisView() {
     switchView("sandbox");
   });
 
-  d3.select("#act11-sort-chips")
+  d3.select("#act9-sort-chips")
     .selectAll(".sort-chip")
     .on("click", function () {
-      d3.select("#act11-sort-chips")
+      d3.select("#act9-sort-chips")
         .selectAll(".sort-chip")
         .classed("active", false);
       d3.select(this).classed("active", true);
-      initAct11(this.dataset.sort);
+      initAct9(this.dataset.sort);
     });
 
   initAct1();
@@ -245,12 +245,11 @@ function renderAnalysisView() {
     6: () => initAct6(),
     7: () => initAct7(),
     8: () => initAct8(),
+    9: () => initAct9(),
     10: () => initAct10(),
     11: () => initAct11(),
     12: () => initAct12(),
     13: () => initAct13(),
-    14: () => initAct14(),
-    15: () => initAct15(),
   };
   const done = new Set([1]);
 
@@ -626,8 +625,8 @@ function initAct3() {
     .text("endurance");
 }
 
-// ---- ACT 5 - Games built not to end ----
-function initAct5() {
+// ---- ACT 4- Games built not to end ----
+function initAct4() {
   const games = GAMES_DATA.filter(
     (g) =>
       g.engagement_total >= THRESHOLDS.ENGAGEMENT_FLOOR ||
@@ -646,7 +645,7 @@ function initAct5() {
   };
 
   const margin = { top: 32, right: 24, bottom: 44, left: 24 };
-  const svgEl = document.getElementById("act5-chart");
+  const svgEl = document.getElementById("act4-chart");
   if (!svgEl) return;
   svgEl.setAttribute("height", "400");
   const W = svgEl.getBoundingClientRect().width;
@@ -743,13 +742,13 @@ function initAct5() {
     .on("mouseleave", () => tooltip.classList.remove("visible"))
     .on("click", (_ev, d) => {
       addToSelection(d);
-      const guide = document.getElementById("act5-guide");
+      const guide = document.getElementById("act4-guide");
       if (guide) guide.classList.add("done");
     });
 }
 
-// ---- ACT 6 - Genre is a costume ----
-function initAct6() {
+// ---- ACT 5- Genre is a costume ----
+function initAct5() {
   const games = GAMES_DATA;
   const countMap = d3.rollup(
     games,
@@ -768,7 +767,7 @@ function initAct6() {
     .slice(0, 12);
 
   const margin = { top: 24, right: 24, bottom: 80, left: 56 };
-  const svgEl = document.getElementById("act6-chart");
+  const svgEl = document.getElementById("act5-chart");
   if (!svgEl) return;
   svgEl.setAttribute("height", "340");
   const W = svgEl.getBoundingClientRect().width;
@@ -861,8 +860,8 @@ function initAct6() {
     .text("median alive ratio");
 }
 
-// ---- ACT 7 - Loved is not alive ----
-function initAct7() {
+// ---- ACT 6- Loved is not alive ----
+function initAct6() {
   const games = GAMES_DATA.filter(
     (g) => g.ratings_count > 0 && g.rating > 0 && isFinite(g.alive_ratio),
   );
@@ -878,17 +877,17 @@ function initAct7() {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
   };
-  set("act7-loved-total", lovedGames.length.toLocaleString());
-  set("act7-loved-alive", lovedAlive.length.toLocaleString());
+  set("act6-loved-total", lovedGames.length.toLocaleString());
+  set("act6-loved-alive", lovedAlive.length.toLocaleString());
   set(
-    "act7-loved-pct",
+    "act6-loved-pct",
     ((lovedAlive.length / Math.max(1, lovedGames.length)) * 100).toFixed(0) +
       "%",
   );
-  set("act7-beloved-buried", belovedBuried.length.toLocaleString());
+  set("act6-beloved-buried", belovedBuried.length.toLocaleString());
 
   const margin = { top: 20, right: 24, bottom: 44, left: 56 };
-  const svgEl = document.getElementById("act7-chart");
+  const svgEl = document.getElementById("act6-chart");
   if (!svgEl) return;
   svgEl.setAttribute("height", "380");
   const W = svgEl.getBoundingClientRect().width;
@@ -1038,7 +1037,7 @@ function initAct7() {
 
   if (!svgEl._outsideHandler) {
     const handler = (ev) => {
-      const panel = document.getElementById("act7-panel");
+      const panel = document.getElementById("act6-panel");
       const wrap = svgEl.closest(".story-chart-wrap");
       if (!panel || panel.classList.contains("hidden")) return;
       if (wrap && !wrap.contains(ev.target)) {
@@ -1052,9 +1051,9 @@ function initAct7() {
 }
 
 function showQuadrantPanel(q, games) {
-  const panel = document.getElementById("act7-panel");
-  const title = document.getElementById("act7-panel-title");
-  const list = document.getElementById("act7-panel-list");
+  const panel = document.getElementById("act6-panel");
+  const title = document.getElementById("act6-panel-title");
+  const list = document.getElementById("act6-panel-list");
   if (!panel || !list) return;
 
   const sub = games.filter(
@@ -1078,12 +1077,12 @@ function showQuadrantPanel(q, games) {
     .join("");
 
   panel.classList.remove("hidden");
-  const guide = document.getElementById("act7-guide");
+  const guide = document.getElementById("act6-guide");
   if (guide && q.id === "tr") guide.classList.add("done");
 }
 
-// ---- ACT 8 - Launch size is not destiny ----
-function initAct8() {
+// ---- ACT 7- Launch size is not destiny ----
+function initAct7() {
   const games = GAMES_DATA.filter(
     (g) =>
       g.peak_players > 0 &&
@@ -1092,7 +1091,7 @@ function initAct8() {
       g.months_to_peak !== null &&
       g.series.length >= 6,
   );
-  const container = document.getElementById("act8-multiples");
+  const container = document.getElementById("act7-multiples");
   if (!container) return;
   container.innerHTML = "";
 
@@ -1238,8 +1237,8 @@ function initAct8() {
   });
 }
 
-// ---- ACT 10 - Release month is a rounding error ----
-function initAct10(filter) {
+// ---- ACT 8- Release month is a rounding error ----
+function initAct8(filter) {
   filter = filter || "all";
   let games = GAMES_DATA;
   if (filter === "aaa")
@@ -1274,7 +1273,7 @@ function initAct10(filter) {
   const peakMap = new Map(peakStats.map((s) => [s.key, s.median]));
   const aliveMap = new Map(aliveStats.map((s) => [s.key, s.median]));
 
-  const svgEl = document.getElementById("act10-chart");
+  const svgEl = document.getElementById("act8-chart");
   if (!svgEl) return;
   const SIZE = 320;
   svgEl.setAttribute("height", SIZE);
@@ -1343,7 +1342,7 @@ function initAct10(filter) {
       .on("mouseover", () => {
         tooltip.innerHTML = `<strong>${monthNames[m]}</strong><br>Peak: ${fmtPlayers(Math.round(peakVals[m]))}<br>Alive Rate: ${(aliveVals[m] * 100).toFixed(1)}%<br>Games: ${games.filter((g) => g.release_month === m).length}`;
         tooltip.classList.add("visible");
-        const guide = document.getElementById("act10-guide");
+        const guide = document.getElementById("act8-guide");
         if (guide) guide.classList.add("done");
       })
       .on("mousemove", (ev) => {
@@ -1422,17 +1421,17 @@ function initAct10(filter) {
     .attr("font-family", "var(--mono)")
     .text("alive ratio (inner ring)");
 
-  d3.select("#act10-chips")
+  d3.select("#act8-chips")
     .selectAll(".act-chip")
     .on("click", function () {
-      d3.select("#act10-chips").selectAll(".act-chip").classed("active", false);
+      d3.select("#act8-chips").selectAll(".act-chip").classed("active", false);
       d3.select(this).classed("active", true);
-      initAct10(this.dataset.filter);
+      initAct8(this.dataset.filter);
     });
 }
 
-// ---- ACT 11 - The DNA of endurance ----
-function initAct11(sortKey) {
+// ---- ACT 9- The DNA of endurance ----
+function initAct9(sortKey) {
   sortKey = sortKey || "lift";
   const immortals = GAMES_DATA.filter((g) => g.archetype === "immortal");
   const mortals = GAMES_DATA.filter((g) => g.archetype !== "immortal");
@@ -1495,7 +1494,7 @@ function initAct11(sortKey) {
   console.log(sorted);
 
   const margin = { top: 10, right: 24, bottom: 10, left: 140 };
-  const svgEl = document.getElementById("act11-chart");
+  const svgEl = document.getElementById("act9-chart");
   if (!svgEl) return;
   const barH = 22;
   const chartH = sorted.length * barH + margin.top + margin.bottom;
@@ -1575,8 +1574,8 @@ function initAct11(sortKey) {
     .text("immortal →");
 }
 
-// ---- ACT 12 - Attention is oxygen ----
-function initAct12(s) {
+// ---- ACT 10- Attention is oxygen ----
+function initAct10(s) {
   let signal = s || "reddit";
   const field = "reddit_count";
 
@@ -1588,11 +1587,11 @@ function initAct12(s) {
     (g) => Math.log10(g[field]),
     (g) => g.alive_ratio,
   );
-  const rEl = document.getElementById("act12-r");
+  const rEl = document.getElementById("act10-r");
   if (rEl) rEl.textContent = r.toFixed(3);
 
   const margin = { top: 20, right: 24, bottom: 44, left: 56 };
-  const svgEl = document.getElementById("act12-chart");
+  const svgEl = document.getElementById("act10-chart");
   if (!svgEl) return;
   svgEl.setAttribute("height", "360");
   const W = svgEl.getBoundingClientRect().width;
@@ -1661,24 +1660,24 @@ function initAct12(s) {
     .attr("text-anchor", "middle")
     .text("alive ratio");
 
-  d3.select("#act12-chips")
+  d3.select("#act10-chips")
     .selectAll(".act-chip")
     .on("click", function () {
-      d3.select("#act12-chips").selectAll(".act-chip").classed("active", false);
+      d3.select("#act10-chips").selectAll(".act-chip").classed("active", false);
       d3.select(this).classed("active", true);
-      initAct12(this.dataset.signal);
-      const guide = document.getElementById("act12-guide");
+      initAct10(this.dataset.signal);
+      const guide = document.getElementById("act10-guide");
       if (guide && this.dataset.signal === "reddit")
         guide.classList.add("done");
     });
 }
 
-// ---- ACT 13 - The shape of a survivor ----
-function initAct13(arch) {
+// ---- ACT 11- The shape of a survivor ----
+function initAct11(arch) {
   arch = arch || "all";
 
   const margin = { top: 24, right: 24, bottom: 44, left: 56 };
-  const svgEl = document.getElementById("act13-chart");
+  const svgEl = document.getElementById("act11-chart");
   if (!svgEl) return;
   svgEl.setAttribute("height", "360");
   const W = svgEl.getBoundingClientRect().width;
@@ -1797,20 +1796,20 @@ function initAct13(arch) {
     .attr("text-anchor", "middle")
     .text("players / peak");
 
-  d3.select("#act13-chips")
+  d3.select("#act11-chips")
     .selectAll(".act-chip")
     .on("click", function () {
-      d3.select("#act13-chips").selectAll(".act-chip").classed("active", false);
+      d3.select("#act11-chips").selectAll(".act-chip").classed("active", false);
       d3.select(this).classed("active", true);
-      initAct13(this.dataset.arch);
-      const guide = document.getElementById("act13-guide");
+      initAct11(this.dataset.arch);
+      const guide = document.getElementById("act11-guide");
       if (guide && this.dataset.arch === "fading_aaa")
         guide.classList.add("done");
     });
 }
 
-// ---- ACT 14 - The mortality index, ranked ----
-function initAct14(sortMode) {
+// ---- ACT 12- The mortality index, ranked ----
+function initAct12(sortMode) {
   sortMode = sortMode || "top";
   const ranked = mortalityIndex(GAMES_DATA);
   const aliveRanked = [...GAMES_DATA].sort((a, b) =>
@@ -1844,7 +1843,7 @@ function initAct14(sortMode) {
       .slice(0, 25);
   }
 
-  const list = document.getElementById("act14-list");
+  const list = document.getElementById("act12-list");
   if (!list) return;
   const scoreMax = d3.max(ranked, (d) => d._score) || 100;
 
@@ -1890,21 +1889,21 @@ function initAct14(sortMode) {
     });
   });
 
-  d3.select("#act14-sort-chips")
+  d3.select("#act12-sort-chips")
     .selectAll(".sort-chip")
     .on("click", function () {
-      d3.select("#act14-sort-chips")
+      d3.select("#act12-sort-chips")
         .selectAll(".sort-chip")
         .classed("active", false);
       d3.select(this).classed("active", true);
-      initAct14(this.dataset.sort);
-      const guide = document.getElementById("act14-guide");
+      initAct12(this.dataset.sort);
+      const guide = document.getElementById("act12-guide");
       if (guide && this.dataset.sort === "movers") guide.classList.add("done");
     });
 }
 
-// ---- ACT 15 - Now make your own reading ----
-function initAct15() {
+// ---- ACT 13- Now make your own reading ----
+function initAct13() {
   const top5immortal = immortalsTop(5);
   const top5fading = fadingAAAGames().slice(0, 5);
   const top5slow = slowBurnTop(5);
@@ -1926,17 +1925,17 @@ function initAct15() {
       row.addEventListener("click", () => {
         addToSelection(games[i]);
         row.style.opacity = "0.5";
-        const guide = document.getElementById("act15-guide");
+        const guide = document.getElementById("act13-guide");
         if (guide) guide.classList.add("done");
       });
     });
   }
 
-  renderList("act15-immortals", top5immortal);
-  renderList("act15-fading", top5fading);
-  renderList("act15-slowburn", top5slow);
+  renderList("act13-immortals", top5immortal);
+  renderList("act13-fading", top5fading);
+  renderList("act13-slowburn", top5slow);
 
-  const cta = document.getElementById("act15-cta");
+  const cta = document.getElementById("act13-cta");
   if (cta) {
     cta.addEventListener("click", () => {
       [...top5immortal, ...top5fading, ...top5slow].forEach((g) => {
