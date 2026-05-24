@@ -1516,13 +1516,14 @@ function initAct10(s) {
   const field = "reddit_count";
 
   const games = GAMES_DATA.filter(
-    (g) => (g[field] || 0) > 0 && isFinite(g.alive_ratio) && g.alive_ratio > 0,
+    (g) => g[field] > 0 && isFinite(g.alive_ratio) && g.alive_ratio > 0,
   );
   const r = pearsonR(
     games,
-    (g) => Math.log10(g[field]),
+    (g) => Math.log10(1 + g[field]),
     (g) => g.alive_ratio,
   );
+
   const rEl = document.getElementById("act10-r");
   if (rEl) rEl.textContent = r.toFixed(3);
 
@@ -1744,41 +1745,28 @@ function initAct11(archs) {
 
 // ---- ACT 12 - The DNA of survival ----
 function initAct12(selected) {
-  selected = selected || ["immortal", "fading_aaa", "slow_burn"];
+  selected = selected || ["aaa"];
 
   const svgEl = document.getElementById("act12-chart");
   if (!svgEl) return;
 
-  const age = (g) => Math.max(1, 2026 - g.year);
-
-  function decayPlateau(g) {
-    if (!g.series || g.series.length < 6) return null;
-    const relDate = new Date(g.year, g.release_month, 1);
-    let v6 = null,
-      v24 = null;
-    g.series.forEach(({ month, peak: mp }) => {
-      const obs = new Date(month);
-      const m =
-        (obs.getFullYear() - relDate.getFullYear()) * 12 +
-        (obs.getMonth() - relDate.getMonth());
-      if (m === 6) v6 = mp;
-      if (m === 24) v24 = mp;
-    });
-    if (!v6 || v6 < 100 || v24 === null) return null;
-    return v24 / v6;
-  }
-
   const AXES = [
     { key: "alive", label: "Alive", fn: (g) => g.alive_ratio },
-    { key: "completion", label: "Completion", fn: (g) => g.completion_rate },
-    { key: "playtime", label: "Playtime", fn: (g) => g.playtime },
     { key: "rating", label: "Rating", fn: (g) => g.rating },
+    {
+      key: "retention",
+      label: "Retention",
+      fn: (g) =>
+        g.peak_players > 0 ? g.current_players / g.peak_players : null,
+    },
     {
       key: "community",
       label: "Community",
-      fn: (g) => (g.reddit_count || 0) / age(g),
+      fn: (g) =>
+        (g.reddit_count || 0) + (g.youtube_count || 0) + (g.twitch_count || 0),
     },
-    { key: "plateau", label: "Plateau", fn: decayPlateau },
+    { key: "completion", label: "Completion", fn: (g) => g.completion_rate },
+    { key: "reviews", label: "Reviews", fn: (g) => g.ratings_count },
   ];
 
   // Compute medians for all archetypes (normalisation uses all three always)
@@ -1826,10 +1814,7 @@ function initAct12(selected) {
 
   const spinG = svg.append("g").attr("transform", `translate(${CX},${CY})`);
 
-  [
-    // Grid rings
-    (0.33, 0.66, 1.0),
-  ].forEach((t) => {
+  [0.33, 0.66, 1.0].forEach((t) => {
     spinG
       .append("circle")
       .attr("r", radarR * t)
@@ -1869,41 +1854,13 @@ function initAct12(selected) {
       .attr("stroke", color)
       .attr("stroke-width", 2);
 
-    pts.forEach(([vx, vy], i) => {
-      const rawVal = medians[arch][AXES[i].key];
-      const fmt = rawVal >= 10 ? rawVal.toFixed(1) : rawVal.toFixed(3);
+    pts.forEach(([vx, vy]) => {
       spinG
         .append("circle")
         .attr("cx", vx)
         .attr("cy", vy)
         .attr("r", 4)
-        .attr("fill", color)
-        .style("cursor", "default")
-        .on("mouseenter", function (event) {
-          const tooltip =
-            document.getElementById("tooltip") ||
-            document.body.appendChild(
-              Object.assign(document.createElement("div"), {
-                id: "tooltip",
-                className: "tooltip",
-              }),
-            );
-          tooltip.innerHTML = `<strong>${ARCHETYPE_LABELS[arch]}</strong><br>${AXES[i].label}: ${fmt}`;
-          tooltip.classList.add("visible");
-          tooltip.style.left = event.pageX + 12 + "px";
-          tooltip.style.top = event.pageY - 20 + "px";
-        })
-        .on("mousemove", function (event) {
-          const tooltip = document.getElementById("tooltip");
-          if (tooltip) {
-            tooltip.style.left = event.pageX + 12 + "px";
-            tooltip.style.top = event.pageY - 20 + "px";
-          }
-        })
-        .on("mouseleave", function () {
-          const tooltip = document.getElementById("tooltip");
-          if (tooltip) tooltip.classList.remove("visible");
-        });
+        .attr("fill", color);
     });
   });
 
@@ -1949,6 +1906,11 @@ function initAct12(selected) {
           newSelected.push(this.dataset.arch);
         });
       initAct12(newSelected);
+      const guide = document.getElementById("act12-guide");
+      if (guide) {
+        const s = new Set(newSelected);
+        guide.classList.toggle("done", s.has("immortal") && s.has("fading_aaa"));
+      }
     });
 }
 

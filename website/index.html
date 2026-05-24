@@ -352,7 +352,7 @@
       </div>
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act5-chart"></svg></div>
-        <p class="story-caption">Median alive ratio by genre with p25–p90 whiskers. Dashed line = global median. Genre is what's on the box.</p>
+        <p class="story-caption">Median alive ratio by genre with p25-p90 whiskers. Dashed line = global median. Genre is what's on the box.</p>
       </div>
     </section>
 
@@ -371,7 +371,7 @@
           <div class="cohort-panel-title" id="act6-panel-title">Top games in quadrant</div>
           <div id="act6-panel-list"></div>
         </div>
-        <p class="story-caption">Rating (RAWG 0–5) × alive ratio. Click a quadrant to drill into its top games.</p>
+        <p class="story-caption">Rating (RAWG 0-5) × alive ratio. Click a quadrant to drill into its top games.</p>
         <div class="story-guide" id="act6-guide">
           <div class="guide-eyebrow">Try this</div>
           <p class="guide-instruction">Click the bottom-right quadrant, high rating, low alive ratio.</p>
@@ -433,7 +433,7 @@
           <button class="sort-chip active" data-sort="lift">Lift</button>
           <button class="sort-chip" data-sort="immortal">Immortal freq</button>
           <button class="sort-chip" data-sort="mortal">Mortal freq</button>
-          <button class="sort-chip" data-sort="alpha">A–Z</button>
+          <button class="sort-chip" data-sort="alpha">A-Z</button>
         </div>
         <div class="story-chart"><svg id="act9-chart"></svg></div>
         <p class="story-caption">Log-ratio P(tag|immortal) / P(tag|mortal). Green = immortal-leaning, red = graveyard-leaning.</p>
@@ -497,19 +497,26 @@
     <section class="story-act" data-act="12">
       <div class="story-prose">
         <div class="act-label">§ 12</div>
-        <h2 class="act-title">The DNA of survival</h2>
-        <p class="story-lead">Every archetype leaves a fingerprint. Six signals, three shapes.</p>
-        <p>Across eleven chapters we measured what makes a game survive: alive ratio, completion, playtime, how much players love it, the hum of its community, how gently its curve decays. No single dimension tells the whole story. But look at them together, by archetype, and a signature emerges. Immortal games score wide. Fading AAA games peak on playtime and collapse everywhere else. Slow burns earn love quietly, then hold.</p>
-        <p class="story-thesis">The archetypes are not just labels. They are distinct biological types, each optimised for a different survival strategy.</p>
+        <h2 class="act-title">The fingerprint</h2>
+        <p class="story-lead">Six signals. Five archetypes. Each leaves a different shape.</p>
+        <p>Across eleven chapters we tracked what makes a game survive: whether players still show up, whether they rate it highly, how much of its peak audience it still retains, the breadth of its social footprint, how many players actually finish it, and how many bother to leave a review. No single signal is enough. But plot all six together, by archetype, and a signature emerges. Immortal games fill the hexagon. Fading AAA titles spike on Community and Reviews, they were big, then collapse where it counts. Slow burns are modest everywhere except where it matters: to stay alive.</p>
+        <p class="story-thesis">The archetypes are not just labels. They are distinct profiles, each shaped by a different survival logic.</p>
       </div>
       <div class="story-chart-wrap">
         <div class="act-chips" id="act12-chips">
-          <button class="act-chip active" data-arch="immortal">Immortal</button>
-          <button class="act-chip active" data-arch="fading_aaa">Fading AAA</button>
-          <button class="act-chip active" data-arch="slow_burn">Slow Burn</button>
+          <button class="act-chip" data-arch="immortal">Immortal</button>
+          <button class="act-chip active" data-arch="aaa">AAA</button>
+          <button class="act-chip" data-arch="fading_aaa">Fading AAA</button>
+          <button class="act-chip" data-arch="slow_burn">Slow Burn</button>
+          <button class="act-chip" data-arch="mid">Mid</button>
         </div>
         <div class="story-chart"><svg id="act12-chart"></svg></div>
-        <p class="story-caption">Median value per archetype, normalised to the cross-archetype maximum (outer ring = best in class). Axes: Alive ratio (Acts 1–2) · Completion (Act 3) · Playtime (Act 7) · Rating (Act 6) · Community / Reddit per year (Act 10) · Decay plateau at month 24 (Act 11).</p>
+        <p class="story-caption">Median value per archetype, normalised to the cross-archetype maximum (outer ring = best in class). Axes: Alive ratio (Acts 1-2) · Completion (Act 3) · Playtime (Act 7) · Rating (Act 6) · Community / Reddit per year (Act 10) · Decay plateau at month 24 (Act 11).</p>
+        <div class="story-guide" id="act12-guide">
+          <div class="guide-eyebrow">Try this</div>
+          <p class="guide-instruction">Enable "Immortal" and "Fading AAA" alongside AAA.</p>
+          <p class="guide-expected">AAA and Fading AAA collapse on Alive and Retention; Immortal stays wide on every axis. The three archetypes have distinct survival fingerprints — same scale, different fates.</p>
+        </div>
       </div>
     </section>
 
@@ -517,10 +524,10 @@
     <section class="story-act" data-act="13">
       <div class="story-prose">
         <div class="act-label">§ 13</div>
-        <h2 class="act-title">Now make your own reading</h2>
-        <p class="story-lead">Every claim above is testable in the sandbox.</p>
-        <p>We've identified the survivors: immortal games with stable audiences, fading AAA titles that peaked and fell, and slow-burn games that quietly built their communities. Add any of them to your selection and stress-test the argument.</p>
-        <p class="story-thesis">This is our reading. The same data, every filter, every axis is one click away. Challenge it. Find the exceptions. Build your own argument.</p>
+        <h2 class="act-title">The ones worth keeping</h2>
+        <p class="story-lead">Across all the data, these are the games that stood out.</p>
+        <p>From thousands of titles, a handful earned their place: the immortals that never stopped holding an audience, the AAA giants whose scale couldn't save them, and the slow burns that grew quietly into something lasting. These are not a random sample. They are the clearest examples of each archetype we found.</p>
+        <p class="story-thesis">Load them into the sandbox and explore them on your own terms: any axis, any combination, at whatever depth you want.</p>
       </div>
       <div class="story-chart-wrap">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
