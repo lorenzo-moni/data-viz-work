@@ -867,6 +867,26 @@ function initAct7() {
     (g) => g.ratings_count > 0 && g.rating > 0 && isFinite(g.alive_ratio),
   );
 
+  const ratingThresh = 3.5;
+  const aliveThresh = THRESHOLDS.ALIVE_MIN;
+  const lovedGames = games.filter((g) => g.rating >= ratingThresh);
+  const lovedAlive = lovedGames.filter((g) => g.alive_ratio >= aliveThresh);
+  const belovedBuried = lovedGames.filter(
+    (g) => g.alive_ratio < aliveThresh && g.game_type === "story",
+  );
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  set("act7-loved-total", lovedGames.length.toLocaleString());
+  set("act7-loved-alive", lovedAlive.length.toLocaleString());
+  set(
+    "act7-loved-pct",
+    ((lovedAlive.length / Math.max(1, lovedGames.length)) * 100).toFixed(0) +
+      "%",
+  );
+  set("act7-beloved-buried", belovedBuried.length.toLocaleString());
+
   const margin = { top: 20, right: 24, bottom: 44, left: 56 };
   const svgEl = document.getElementById("act7-chart");
   if (!svgEl) return;
@@ -882,8 +902,6 @@ function initAct7() {
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const ratingThresh = 3.5;
-  const aliveThresh = THRESHOLDS.ALIVE_MIN;
   const x = d3.scaleLinear().domain([0, 5]).range([0, w]);
   const y = d3.scaleLinear().domain([0, 1]).range([h, 0]);
 
@@ -1558,22 +1576,16 @@ function initAct11(sortKey) {
 }
 
 // ---- ACT 12 - Attention is oxygen ----
-function initAct12(signal) {
-  signal = signal || "twitch";
-  const fieldMap = {
-    twitch: "twitch_count",
-    youtube: "youtube_count",
-    reddit: "reddit_count",
-  };
-  const field = fieldMap[signal] || "twitch_count";
-  const age = (g) => Math.max(1, 2026 - g.year);
+function initAct12(s) {
+  let signal = s || "reddit";
+  const field = "reddit_count";
 
   const games = GAMES_DATA.filter(
     (g) => (g[field] || 0) > 0 && isFinite(g.alive_ratio) && g.alive_ratio > 0,
   );
   const r = pearsonR(
     games,
-    (g) => Math.log10(g[field] / age(g)),
+    (g) => Math.log10(g[field]),
     (g) => g.alive_ratio,
   );
   const rEl = document.getElementById("act12-r");
@@ -1594,7 +1606,7 @@ function initAct12(signal) {
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const xVals = games.map((g) => g[field] / age(g)).filter((v) => v > 0);
+  const xVals = games.map((g) => g[field]).filter((v) => v > 0);
   const x = d3.scaleLog().domain(d3.extent(xVals)).range([0, w]).clamp(true);
   const y = d3.scaleLinear().domain([0, 1]).range([h, 0]);
 
@@ -1602,7 +1614,7 @@ function initAct12(signal) {
     .append("g")
     .attr("class", "axis axis-x")
     .attr("transform", `translate(0,${h})`)
-    .call(d3.axisBottom(x).ticks(4).tickFormat(d3.format(".1s")));
+    .call(d3.axisBottom(x));
   gEl
     .append("g")
     .attr("class", "axis axis-y")
@@ -1618,7 +1630,7 @@ function initAct12(signal) {
     .selectAll("circle")
     .data(games)
     .join("circle")
-    .attr("cx", (d) => x(Math.max(0.01, d[field] / age(d))))
+    .attr("cx", (d) => x(Math.max(0.01, d[field])))
     .attr("cy", (d) => y(Math.max(0.001, d.alive_ratio)))
     .attr("r", 2.5)
     .attr("fill", (d) => ARCHETYPE_COLOR[d.archetype] || ARCHETYPE_COLOR.mid)
@@ -1656,7 +1668,7 @@ function initAct12(signal) {
       d3.select(this).classed("active", true);
       initAct12(this.dataset.signal);
       const guide = document.getElementById("act12-guide");
-      if (guide && this.dataset.signal === "youtube")
+      if (guide && this.dataset.signal === "reddit")
         guide.classList.add("done");
     });
 }

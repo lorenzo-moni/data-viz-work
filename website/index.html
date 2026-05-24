@@ -448,30 +448,20 @@
     <section class="story-act" data-act="12">
       <div class="story-prose">
         <div class="act-label">§ 12</div>
-        <h2 class="act-title">Attention is oxygen</h2>
-        <p class="story-lead">Living games are streamed. Dying ones aren't.</p>
-        <p>Twitch coverage per year of existence scales cleanly with alive ratio. YouTube saturates at a data cap. Reddit coverage is too sparse. Twitch is the cleanest social signal we have.</p>
-        <p class="story-thesis">Social attention and player retention are mutually reinforcing, but only Twitch (normalized by age) provides a clean predictive signal. Switch the metric below and watch the correlation degrade.</p>
+        <h2 class="act-title">The hum of the community</h2>
+        <p class="story-lead">Living games keep generating Reddit threads. Dying ones go quieter, but the numbers tell a messier story.</p>
+        <p>Reddit post count should be a clean proxy for organic community discussion: no algorithm, no marketing spend, just players who care enough to post. And the correlation with alive ratio is positive — but weak. Reddit communities outlive the games themselves: r/Skyrim keeps posting long after the Steam numbers have faded. A dead game can carry a loud subreddit. A thriving one can have almost none.</p>
+        <p class="story-thesis">Social noise and player retention don't always speak the same language.</p>
         <div class="hero-stat-group" id="act12-stats" style="margin-top:20px">
           <div class="hero-stat">
             <div class="hero-num" id="act12-r">-</div>
-            <div class="hero-label">Pearson r (signal vs alive)</div>
+            <div class="hero-label">Pearson r (Reddit count vs alive ratio)</div>
           </div>
         </div>
       </div>
       <div class="story-chart-wrap">
         <div class="story-chart"><svg id="act12-chart"></svg></div>
-        <div class="act-chips" id="act12-chips">
-          <button class="act-chip active" data-signal="twitch">Twitch</button>
-          <button class="act-chip" data-signal="youtube">YouTube</button>
-          <button class="act-chip" data-signal="reddit">Reddit</button>
-        </div>
-        <p class="story-caption">Signal count / years since release (log) × alive ratio. Color = archetype.</p>
-        <div class="story-guide" id="act12-guide">
-          <div class="guide-eyebrow">Try this</div>
-          <p class="guide-instruction">Switch from Twitch to YouTube.</p>
-          <p class="guide-expected">The cloud collapses against the 1M cap and the correlation drops. Twitch wins, YouTube data saturates before it differentiates.</p>
-        </div>
+        <p class="story-caption">Reddit post count × alive ratio (log-log). Color = archetype. The cloud is wide: many dead games still carry a large Reddit footprint from their past.</p>
       </div>
     </section>
 
