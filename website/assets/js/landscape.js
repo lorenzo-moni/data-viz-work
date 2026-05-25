@@ -247,8 +247,18 @@ function onHoverOut() {
   tooltip.classed("visible", false);
 }
 
-function onBubbleClick(_event, d) {
-  showCard(d);
+function onBubbleClick(event, d) {
+  if (event.metaKey || event.ctrlKey) {
+    if (state.selectedIds.has(d.id)) {
+      state.selectedIds.delete(d.id);
+    } else {
+      state.selectedIds.add(d.id);
+    }
+    updateSelectionUI();
+    update();
+  } else {
+    showCard(d);
+  }
 }
 
 // GAME CARD

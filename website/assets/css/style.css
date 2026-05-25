@@ -235,6 +235,16 @@ strong {
   display: none;
 }
 
+.nav-cb[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--bg-panel);
+  color: var(--ink);
+}
+
+.nav-cb[aria-pressed="true"] .nav-num {
+  color: var(--accent);
+}
+
 /* Views */
 .view {
   display: none;
@@ -306,6 +316,14 @@ strong {
 }
 .view-intro strong {
   color: var(--ink);
+}
+
+.view-hint {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 6px;
 }
 
 /* View 1 */
@@ -898,6 +916,20 @@ input[type="range"]::-moz-range-thumb {
   max-width: 240px;
 }
 
+.axis-picker-reset {
+  flex: 0 0 auto;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.axis-picker-reset .btn-ghost {
+  padding: 10px 16px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .axis-picker label {
   display: block;
   font-family: var(--mono);
@@ -1056,6 +1088,88 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .sel-remove:hover {
+  color: var(--dying);
+}
+
+.sel-chip.chip-marked {
+  outline: 2px solid var(--dying);
+  background: rgba(217, 108, 108, 0.12);
+}
+
+.btn-danger {
+  color: var(--dying) !important;
+  border-color: var(--dying) !important;
+}
+
+/* Bookmarks */
+.sandbox-bookmarks {
+  padding: 16px 0 0;
+  border-top: 1px solid var(--rule);
+  margin-top: 16px;
+}
+
+.bookmarks-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bookmark-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 2px;
+  outline: none;
+}
+
+.bookmark-input:focus {
+  border-color: var(--accent);
+}
+
+.bookmark-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bookmark-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #000;
+  border: 1px solid #000;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #fff;
+}
+
+.bookmark-name {
+  padding: 5px 8px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.bookmark-name:hover {
+  color: var(--accent);
+}
+
+.bookmark-remove {
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 6px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.bookmark-remove:hover {
   color: var(--dying);
 }
 

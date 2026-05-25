@@ -45,7 +45,7 @@ const ARCHETYPE_LABELS = {
   mid: "Mid",
 };
 
-const ARCHETYPE_COLOR = {
+let ARCHETYPE_COLOR = {
   immortal: "#7fc97f",
   aaa: "#e6a356",
   slow_burn: "#8ab4ff",
@@ -53,7 +53,46 @@ const ARCHETYPE_COLOR = {
   mid: "#a69a8c",
 };
 
-const TS_PALETTE = d3.schemeTableau10;
+let TS_PALETTE = d3.schemeTableau10;
+
+let GENRE_PALETTE = ["#e6a356", "#7fc97f", "#d96c6c", "#a5b1e4", "#ddb892", "#c8a2d6"];
+
+let CB_MODE = localStorage.getItem("mobava_colorblind") === "1";
+
+const _CB_ARCHETYPE = {
+  immortal: "#009E73",
+  aaa: "#E69F00",
+  slow_burn: "#56B4E9",
+  fading_aaa: "#D55E00",
+  mid: "#999999",
+};
+
+const _DEFAULT_ARCHETYPE = {
+  immortal: "#7fc97f",
+  aaa: "#e6a356",
+  slow_burn: "#8ab4ff",
+  fading_aaa: "#d96c6c",
+  mid: "#a69a8c",
+};
+
+const _CB_TS_PALETTE = ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000"];
+const _DEFAULT_TS_PALETTE = d3.schemeTableau10;
+
+const _CB_GENRE_PALETTE = ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#CC79A7"];
+const _DEFAULT_GENRE_PALETTE = ["#e6a356", "#7fc97f", "#d96c6c", "#a5b1e4", "#ddb892", "#c8a2d6"];
+
+function _applyCBMode() {
+  if (CB_MODE) {
+    ARCHETYPE_COLOR = { ..._CB_ARCHETYPE };
+    TS_PALETTE = _CB_TS_PALETTE;
+    GENRE_PALETTE = _CB_GENRE_PALETTE;
+  } else {
+    ARCHETYPE_COLOR = { ..._DEFAULT_ARCHETYPE };
+    TS_PALETTE = _DEFAULT_TS_PALETTE;
+    GENRE_PALETTE = _DEFAULT_GENRE_PALETTE;
+  }
+}
+_applyCBMode();
 
 const FIELD_LABELS = {
   completion_rate: "Completion rate",

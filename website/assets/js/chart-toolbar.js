@@ -10,6 +10,12 @@ const _OVERLAY_ITEMS = [
   { sel: "#selection-tray", fsClass: "is-fullscreen-tray" },
 ];
 
+const _ICON_DOWNLOAD = `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <line x1="8" y1="2" x2="8" y2="10"/>
+  <polyline points="5,7 8,10 11,7"/>
+  <polyline points="2,13 2,14 14,14 14,13"/>
+</svg>`;
+
 const _ICON_EXPAND = `<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
   <polyline points="6,2 2,2 2,6"/>
   <polyline points="10,2 14,2 14,6"/>
@@ -30,6 +36,7 @@ function setupChartToolbar({
   chartObj,
   reinit,
   hasOverlayPanel = false,
+  onExport = null,
 }) {
   // remove any existing toolbar
   const existing = wrapEl.querySelector(".chart-toolbar");
@@ -38,11 +45,19 @@ function setupChartToolbar({
   const toolbar = document.createElement("div");
   toolbar.className = "chart-toolbar";
   toolbar.innerHTML = `
+    ${onExport ? `<button class="ct-btn ct-export" title="Export PNG">${_ICON_DOWNLOAD}</button>` : ""}
     <button class="ct-btn ct-fullscreen" title="Fullscreen">${_ICON_EXPAND}</button>
     <button class="ct-btn ct-zoom-in" title="Zoom in">＋</button>
     <button class="ct-btn ct-zoom-out" title="Zoom out">－</button>
   `;
   wrapEl.appendChild(toolbar);
+
+  if (onExport) {
+    toolbar.querySelector(".ct-export").addEventListener("click", (e) => {
+      e.stopPropagation();
+      onExport();
+    });
+  }
 
   _toolbarRegistry.set(wrapEl, { svgEl, chartObj, reinit, hasOverlayPanel });
 

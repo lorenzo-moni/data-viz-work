@@ -17,10 +17,6 @@ const state = {
 
 // View Router
 function switchView(targetView) {
-  if (targetView === "sandbox" && state.selectedIds.size === 0) {
-    flashSandboxNav();
-    return;
-  }
   if (document.fullscreenElement) document.exitFullscreen();
   state.view = targetView;
 
@@ -57,17 +53,21 @@ function switchView(targetView) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function flashSandboxNav() {
-  const nav = d3.select("#nav-sandbox");
-  nav.classed("flash", true);
-  setTimeout(() => nav.classed("flash", false), 600);
-}
-
 d3.selectAll("[data-view]").on("click", function () {
   switchView(this.dataset.view);
 });
 
 // SELECTION UI (tray + nav state)
+// ==========================================================
+
+const markedForRemoval = new Set();
+
+function updateMarkedButton() {
+  const n = markedForRemoval.size;
+  d3.select("#remove-marked")
+    .classed("hidden", n === 0)
+    .text(`Remove ${n}`);
+}
 
 function colorForGame(id) {
   if (!sandbox.colorByGameId.has(id)) {
@@ -88,9 +88,11 @@ function pruneSelectionColors() {
 
 function updateSelectionUI() {
   pruneSelectionColors();
+  for (const id of [...markedForRemoval]) {
+    if (!state.selectedIds.has(id)) markedForRemoval.delete(id);
+  }
+  updateMarkedButton();
   const count = state.selectedIds.size;
-
-  d3.select("#nav-sandbox").classed("disabled", count === 0);
 
   const tray = d3.select("#selection-tray");
   const showTray = count > 0 && state.view === "main";
@@ -140,11 +142,27 @@ function updateSelectionUI() {
           .attr("class", "sel-remove")
           .text("x")
           .on("click", (_ev, d) => {
+            markedForRemoval.delete(d.id);
             state.selectedIds.delete(d.id);
+            updateMarkedButton();
             updateSelectionUI();
             if (state.view === "sandbox") renderSandbox();
             if (state.view === "main") update();
           });
+        e.on("click", (event, d) => {
+          if (event.target.classList.contains("sel-remove")) return;
+          if (event.metaKey || event.ctrlKey) {
+            const chip = d3.select(event.currentTarget);
+            if (markedForRemoval.has(d.id)) {
+              markedForRemoval.delete(d.id);
+              chip.classed("chip-marked", false);
+            } else {
+              markedForRemoval.add(d.id);
+              chip.classed("chip-marked", true);
+            }
+            updateMarkedButton();
+          }
+        });
         return e;
       },
       (update) => {
@@ -152,6 +170,7 @@ function updateSelectionUI() {
           .select(".chip-swatch")
           .style("background", (d) => colorForGame(d.id));
         update.select(".sel-name").text((d) => d.name);
+        update.classed("chip-marked", (d) => markedForRemoval.has(d.id));
         return update;
       },
       (exit) => exit.remove(),
@@ -165,12 +184,59 @@ function updateSelectionUI() {
 d3.select("#open-sandbox").on("click", () => switchView("sandbox"));
 d3.select("#clear-selection").on("click", () => {
   state.selectedIds.clear();
+  markedForRemoval.clear();
+  updateMarkedButton();
   updateSelectionUI();
   renderSandbox();
   if (state.view === "main") update();
 });
 
+d3.select("#remove-marked").on("click", () => {
+  markedForRemoval.forEach((id) => state.selectedIds.delete(id));
+  markedForRemoval.clear();
+  updateMarkedButton();
+  updateSelectionUI();
+  if (state.view === "sandbox") renderSandbox();
+  if (state.view === "main") update();
+});
+
+d3.select("#sandbox-reset").on("click", () => {
+  state.selectedIds.clear();
+  markedForRemoval.clear();
+  updateMarkedButton();
+  sandbox.xField = "completion_rate";
+  sandbox.yField = "alive_ratio";
+  sandbox.colorField = "genre";
+  sandbox.sizeField = "none";
+  d3.select("#sandbox-x").property("value", "completion_rate");
+  d3.select("#sandbox-y").property("value", "alive_ratio");
+  d3.select("#sandbox-color").property("value", "genre");
+  d3.select("#sandbox-size").property("value", "none");
+  if (sandbox.svg && sandbox.zoom)
+    sandbox.svg.transition().duration(300).call(sandbox.zoom.transform, d3.zoomIdentity);
+  if (ts.svg && ts.zoom)
+    ts.svg.transition().duration(300).call(ts.zoom.transform, d3.zoomIdentity);
+  updateSelectionUI();
+  renderSandbox();
+  updateSandboxDescriptions();
+});
+
+// ==========================================================
 // UPDATE + BOOTSTRAP
+// ==========================================================
+
+function rerenderAll() {
+  if (state.view === "main") update();
+  if (state.view === "sandbox") {
+    updateSelectionUI();
+    renderSandbox();
+    renderTimeSeries();
+  }
+  if (state.view === "analysis") {
+    analysis.initialized = false;
+    renderAnalysisView();
+  }
+}
 
 function update() {
   const filtered = getFilteredGames();
@@ -178,9 +244,15 @@ function update() {
   renderChart(filtered);
 }
 
+d3.select("#cb-toggle").on("click", () => {
+  setColorblindMode(!CB_MODE);
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   const games = await loadGameData();
   GAMES_DATA = games;
+  // Apply CB palette after domain is set by loadGameData
+  if (CB_MODE) _rebuildAliveScale();
   ALL_GENRES = [...new Set(games.flatMap((g) => g.genres))].sort();
   ALL_PLATFORMS = [...new Set(games.flatMap((g) => g.platforms))].sort();
 
@@ -191,6 +263,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   initChart();
   update();
   updateSelectionUI();
+
+  const cbBtn = document.getElementById("cb-toggle");
+  if (cbBtn) cbBtn.setAttribute("aria-pressed", CB_MODE ? "true" : "false");
 
   const validViews = ["main", "sandbox", "analysis"];
   const hash = window.location.hash.replace("#", "");

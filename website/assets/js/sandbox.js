@@ -12,6 +12,7 @@ const sandbox = {
   xField: "completion_rate",
   yField: "alive_ratio",
   colorField: "genre",
+  sizeField: "none",
   colorByGameId: new Map(),
 };
 
@@ -99,6 +100,14 @@ function initSandbox() {
 
   sandbox.initialized = true;
 
+  d3.select("#bookmark-save").on("click", () => {
+    const nameInput = document.getElementById("bookmark-name");
+    if (!nameInput || !nameInput.value.trim()) return;
+    saveBookmark(nameInput.value);
+    nameInput.value = "";
+  });
+  renderBookmarks();
+
   setupChartToolbar({
     wrapEl: document.querySelector(".sandbox-chart-wrap"),
     svgEl: svg.node(),
@@ -107,6 +116,7 @@ function initSandbox() {
       initSandbox();
       if (sandbox.initialized) renderSandbox();
     },
+    onExport: () => exportSandboxAsPNG(),
   });
 }
 
@@ -164,6 +174,14 @@ function updateSandboxDescriptions() {
   d3.select("#desc-color-body").text(
     FIELD_DESCRIPTIONS[`color_${sandbox.colorField}`] || "",
   );
+  const hasSize = sandbox.sizeField !== "none";
+  d3.select("#desc-size").classed("hidden", !hasSize);
+  if (hasSize) {
+    d3.select("#desc-size-label").text(
+      `Size by selected: ${FIELD_LABELS[sandbox.sizeField]}`,
+    );
+    d3.select("#desc-size-body").text(FIELD_DESCRIPTIONS[sandbox.sizeField] || "");
+  }
 }
 
 function renderSandbox() {
@@ -176,8 +194,12 @@ function renderSandbox() {
 
   d3.select("#sandbox-empty").classed("hidden", selected.length > 0);
   d3.select("#sandbox-chart").style("opacity", selected.length > 0 ? 1 : 0);
+  d3.select(".sandbox-chart-wrap .ct-export").style("display", selected.length > 0 ? null : "none");
 
-  if (selected.length === 0) return;
+  if (selected.length === 0) {
+    renderTimeSeries();
+    return;
+  }
 
   const xVals = selected.map((d) => d[sandbox.xField]);
   const yVals = selected.map((d) => d[sandbox.yField]);
@@ -227,6 +249,16 @@ function renderSandbox() {
       .range([sandbox.height, 0]);
   }
 
+  // Size
+  let rOf;
+  if (sandbox.sizeField === "none") {
+    rOf = () => 9;
+  } else {
+    const sizeVals = selected.map((d) => d[sandbox.sizeField]).filter(Number.isFinite);
+    const sizeScale = d3.scaleSqrt().domain(d3.extent(sizeVals)).range([5, 18]);
+    rOf = (d) => Number.isFinite(d[sandbox.sizeField]) ? sizeScale(d[sandbox.sizeField]) : 9;
+  }
+
   // Color
   let colorScale;
   if (sandbox.colorField === "genre") {
@@ -234,14 +266,7 @@ function renderSandbox() {
     colorScale = d3
       .scaleOrdinal()
       .domain(genres)
-      .range([
-        "#e6a356",
-        "#7fc97f",
-        "#d96c6c",
-        "#a5b1e4",
-        "#ddb892",
-        "#c8a2d6",
-      ]);
+      .range(GENRE_PALETTE);
   } else if (sandbox.colorField === "alive_ratio") {
     colorScale = ALIVE_SCALE;
   } else {
@@ -306,7 +331,7 @@ function renderSandbox() {
     .duration(500)
     .attr("cx", (d) => sandbox.xScale(d[sandbox.xField]))
     .attr("cy", (d) => sandbox.yScale(d[sandbox.yField]))
-    .attr("r", 9)
+    .attr("r", rOf)
     .attr("fill", (d) => {
       if (sandbox.colorField === "genre") return colorScale(d.genres[0]);
       return colorScale(d[sandbox.colorField]);
@@ -323,12 +348,13 @@ function renderSandbox() {
   updateSandboxDescriptions();
 }
 
-d3.selectAll("#sandbox-x, #sandbox-y, #sandbox-color").on(
+d3.selectAll("#sandbox-x, #sandbox-y, #sandbox-color, #sandbox-size").on(
   "change",
   function () {
     if (this.id === "sandbox-x") sandbox.xField = this.value;
     if (this.id === "sandbox-y") sandbox.yField = this.value;
     if (this.id === "sandbox-color") sandbox.colorField = this.value;
+    if (this.id === "sandbox-size") sandbox.sizeField = this.value;
     updateSandboxDescriptions();
     renderSandbox();
   },
@@ -643,6 +669,8 @@ function renderTimeSeries() {
   d3.select("#sandbox-ts").style("opacity", selected.length > 0 ? 1 : 0);
   if (selected.length === 0) {
     ts.g.select(".ts-lines").selectAll("path").remove();
+    ts.g.select(".ts-areas").selectAll("path").remove();
+    ts.g.select(".ts-peaks").selectAll("path").remove();
     onTsHoverLeave();
     return;
   }
@@ -765,4 +793,87 @@ function renderTimeSeries() {
     .attr("d", (d) => line(d.series));
 
   if (ts.hoverRect) ts.hoverRect.raise();
+}
+
+// ==========================================================
+// PNG EXPORT
+// ==========================================================
+
+function exportSandboxAsPNG() {
+  const svgEl = document.getElementById("sandbox-chart");
+  if (!svgEl) return;
+
+  // Resolve CSS custom properties from :root
+  const rootStyle = getComputedStyle(document.documentElement);
+  const cssVars = ["--bg", "--bg-panel", "--bg-lift", "--ink", "--ink-dim", "--ink-faint",
+    "--rule", "--rule-strong", "--accent", "--accent-hot", "--alive", "--dying"];
+  const resolved = {};
+  cssVars.forEach((v) => { resolved[v] = rootStyle.getPropertyValue(v).trim(); });
+  const bg = resolved["--bg"] || "#14100e";
+
+  function resolveCssVar(val) {
+    return val.replace(/var\((--[^)]+)\)/g, (_, name) => resolved[name] || "");
+  }
+
+  // Use the actual rendered pixel size
+  const bbox = svgEl.getBoundingClientRect();
+  const W = Math.round(bbox.width);
+  const H = Math.round(bbox.height);
+  const scale = 2;
+
+  const clone = svgEl.cloneNode(true);
+
+  // Set explicit dimensions so the SVG renders at the right size regardless of CSS
+  clone.setAttribute("width", W);
+  clone.setAttribute("height", H);
+  clone.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  clone.style.cssText = "";
+
+  // Insert background rect as first child
+  const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  bgRect.setAttribute("width", W);
+  bgRect.setAttribute("height", H);
+  bgRect.setAttribute("fill", bg);
+  clone.insertBefore(bgRect, clone.firstChild);
+
+  // Inline computed styles on every element
+  const origEls = svgEl.querySelectorAll("*");
+  const cloneEls = clone.querySelectorAll("*:not(rect:first-child)");
+  origEls.forEach((orig, i) => {
+    const cs = getComputedStyle(orig);
+    const cloneEl = cloneEls[i];
+    if (!cloneEl) return;
+    const props = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-opacity",
+      "fill-opacity", "font-family", "font-size", "font-weight", "text-anchor", "opacity"];
+    props.forEach((p) => {
+      const val = cs.getPropertyValue(p);
+      if (val) cloneEl.style[p] = resolveCssVar(val);
+    });
+  });
+
+  const serializer = new XMLSerializer();
+  const svgStr = serializer.serializeToString(clone);
+  const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(img, 0, 0, W, H);
+    URL.revokeObjectURL(url);
+    canvas.toBlob((pngBlob) => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(pngBlob);
+      a.download = `sandbox-${sandbox.xField}-vs-${sandbox.yField}.png`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, "image/png");
+  };
+  img.src = url;
 }

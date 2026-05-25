@@ -24,14 +24,17 @@
       <span class="nav-num">§ 01</span>
       <span class="nav-label">The Landscape</span>
     </button>
-    <button class="nav-item disabled" data-view="sandbox" id="nav-sandbox">
+    <button class="nav-item" data-view="sandbox" id="nav-sandbox">
       <span class="nav-num">§ 02</span>
       <span class="nav-label">The Sandbox</span>
-      <span class="nav-hint">Select games to unlock</span>
     </button>
     <button class="nav-item" data-view="analysis">
       <span class="nav-num">§ 03</span>
       <span class="nav-label">Our Reading</span>
+    </button>
+    <button class="nav-item nav-cb" id="cb-toggle" aria-pressed="false">
+      <span class="nav-num">◑</span>
+      <span class="nav-label">Colorblind</span>
     </button>
   </nav>
 </header>
@@ -95,6 +98,7 @@
       <p class="view-intro">
         Every dot is a game. Color reads from red (games less active over time) to green (games more active over time).
         <strong>Click any bubble to add it to your selection</strong> for the sandbox where you will be able to analyze your picks.
+        <span class="view-hint">⌘ Cmd+click (Mac) or Ctrl+click (Windows/Linux) to add multiple games without opening the card.</span>
       </p>
     </div>
 
@@ -169,6 +173,18 @@
             <option value="year">Release year</option>
           </select>
         </div>
+        <div class="axis-picker">
+          <label>Size by</label>
+          <select id="sandbox-size">
+            <option value="none">None</option>
+            <option value="avg_players">Avg. players</option>
+            <option value="peak_players">Peak players</option>
+          </select>
+        </div>
+        <div class="axis-picker axis-picker-reset">
+          <label>&nbsp;</label>
+          <button class="btn-ghost" id="sandbox-reset">Reset</button>
+        </div>
       </div>
 
       <div class="sandbox-descriptions">
@@ -184,6 +200,18 @@
           <div class="desc-label" id="desc-color-label">Color by selected</div>
           <div class="desc-body" id="desc-color-body"></div>
         </div>
+        <div class="metric-desc hidden" id="desc-size">
+          <div class="desc-label" id="desc-size-label">Size by selected</div>
+          <div class="desc-body" id="desc-size-body"></div>
+        </div>
+      </div>
+
+      <div class="sandbox-bookmarks">
+        <div class="bookmarks-row">
+          <input type="text" id="bookmark-name" class="bookmark-input" placeholder="Name this view…" maxlength="40">
+          <button class="btn-ghost" id="bookmark-save">Save view</button>
+        </div>
+        <div class="bookmark-chips" id="bookmark-chips"></div>
       </div>
 
       <div class="sandbox-chart-wrap">
@@ -198,7 +226,9 @@
       <div class="sandbox-selection-list">
         <div class="selection-header">
           <span id="selection-count">0</span> <span class="dim">games in your selection</span>
+          <span class="view-hint">⌘/Ctrl+click chips to mark · then Remove</span>
           <button class="btn-ghost" id="clear-selection">Clear all</button>
+          <button class="btn-ghost btn-danger hidden" id="remove-marked">Remove 0</button>
         </div>
         <div class="selection-chips" id="selection-chips"></div>
       </div>
@@ -614,6 +644,7 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/utils.js"></script>
 <div id="tooltip" class="tooltip"></div>
+<script src="assets/js/bookmarks.js"></script>
 <script src="assets/js/chart-toolbar.js"></script>
 <script src="assets/js/landscape.js"></script>
 <script src="assets/js/sandbox.js"></script>

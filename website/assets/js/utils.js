@@ -8,10 +8,31 @@ function fmtPlayers(n) {
 
 // Domain is set dynamically in data.js after computing the population median.
 // Placeholder keeps rendering sane if scale is ever read before data loads.
-const ALIVE_SCALE = d3
+let ALIVE_SCALE = d3
   .scaleLinear()
   .range(["#d96c6c", "#e6a356", "#7fc97f"])
   .clamp(true);
+
+function _rebuildAliveScale() {
+  const domain = ALIVE_SCALE.domain();
+  if (CB_MODE) {
+    ALIVE_SCALE = d3.scaleLinear().domain(domain).range(["#0072B2", "#F0E442", "#D55E00"]).clamp(true);
+  } else {
+    ALIVE_SCALE = d3.scaleLinear().domain(domain).range(["#d96c6c", "#e6a356", "#7fc97f"]).clamp(true);
+  }
+}
+
+function setColorblindMode(on) {
+  CB_MODE = on;
+  localStorage.setItem("mobava_colorblind", on ? "1" : "0");
+  _applyCBMode();
+  _rebuildAliveScale();
+  // Clear cached time-series colors so they re-pick from the new palette
+  if (typeof sandbox !== "undefined") sandbox.colorByGameId.clear();
+  rerenderAll();
+  const btn = document.getElementById("cb-toggle");
+  if (btn) btn.setAttribute("aria-pressed", on ? "true" : "false");
+}
 
 // Compute binned stats (median, p25, p90) grouped by a numeric key
 function binnedStats(games, keyFn, valFn) {
