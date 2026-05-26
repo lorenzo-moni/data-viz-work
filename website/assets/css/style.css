@@ -71,33 +71,6 @@ strong {
   display: none !important;
 }
 
-/* Dummy Data Banner */
-.dummy-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--banner-h);
-  background: #2a1f10;
-  border-bottom: 1px solid #4a3a1e;
-  color: var(--accent-hot);
-  font-family: var(--mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  z-index: 500;
-  padding: 0 20px;
-}
-
-.dummy-dot {
-  color: var(--accent);
-  animation: pulse 2s ease-in-out infinite;
-}
-
 @keyframes pulse {
   0%,
   100% {
@@ -1350,9 +1323,7 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* ============================================================
-   § 03 - Our Reading (Static Analysis)
-   ============================================================ */
+/* View 3 */
 
 .view-analysis .view-title {
   max-width: 820px;
@@ -1648,11 +1619,7 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* ============================================================
-   ANALYSIS VIEW - additional rules
-   ============================================================ */
-
-/* Small multiples grid (Acts 6, 13) */
+/* Small multiples grid */
 .act-multiples {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1691,7 +1658,7 @@ input[type="range"]::-moz-range-thumb {
   overflow: visible;
 }
 
-/* Guided discovery block (High-interactivity acts) */
+/* Guided discovery block */
 .story-guide {
   margin-top: 16px;
   padding: 14px 16px;
@@ -1724,7 +1691,7 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1.5;
 }
 
-/* Cohort drilldown side panel (Act 2) */
+/* Cohort drilldown side panel */
 .cohort-panel {
   position: absolute;
   top: 0;
@@ -1775,7 +1742,7 @@ input[type="range"]::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-/* Quadrant labels (Acts 4, 8, 12) */
+/* Quadrant labels */
 .quadrant-label {
   font-family: var(--mono);
   font-size: 9px;
@@ -1792,7 +1759,7 @@ input[type="range"]::-moz-range-thumb {
   fill: rgba(230, 163, 86, 0.07);
 }
 
-/* Gene / Archetype filter chips (Acts 5, 9, 10) */
+/* Gene / Archetype filter chips */
 .act-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1821,7 +1788,7 @@ input[type="range"]::-moz-range-thumb {
   border-color: var(--accent);
 }
 
-/* Drill-down list (Acts 7, 8) */
+/* Drill-down list */
 .drill-list {
   margin-top: 16px;
   border-top: 1px solid var(--rule);
@@ -1861,7 +1828,7 @@ input[type="range"]::-moz-range-thumb {
   flex-shrink: 0;
 }
 
-/* Sort chips header (Act 9) */
+/* Sort chips header */
 .sort-chips {
   display: flex;
   gap: 8px;
@@ -1888,7 +1855,7 @@ input[type="range"]::-moz-range-thumb {
   border-color: var(--rule-strong);
 }
 
-/* Game row (Acts 2, 11) */
+/* Game row */
 .game-bar-row {
   display: grid;
   grid-template-columns: 1fr 60px 80px 90px;
@@ -1926,82 +1893,6 @@ input[type="range"]::-moz-range-thumb {
   height: 100%;
   border-radius: 2px;
   background: var(--alive);
-}
-
-/* Mortality index list (Act 13) */
-.mortality-list-header {
-  display: grid;
-  grid-template-columns: 28px 1fr 64px 80px 80px;
-  gap: 10px;
-  padding: 0 0 8px;
-  border-bottom: 1px solid var(--rule-strong);
-  margin-bottom: 4px;
-}
-.mortality-list-header span {
-  font-family: var(--mono);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-faint);
-  cursor: pointer;
-}
-.mortality-list-header span.sort-active {
-  color: var(--accent);
-}
-.mortality-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.mortality-row {
-  display: grid;
-  grid-template-columns: 28px 1fr 64px 80px 80px;
-  gap: 10px;
-  align-items: center;
-  padding: 9px 4px;
-  border-bottom: 1px solid var(--rule);
-  cursor: pointer;
-  transition: background 0.12s;
-}
-.mortality-row:hover {
-  background: var(--bg-lift);
-}
-.mortality-rank {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-}
-.mortality-name {
-  font-size: 13px;
-  color: var(--ink-dim);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.mortality-row:hover .mortality-name {
-  color: var(--ink);
-}
-.mortality-year {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-}
-.mortality-bar-wrap {
-  height: 4px;
-  background: var(--rule);
-  border-radius: 2px;
-  position: relative;
-}
-.mortality-bar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--accent);
-}
-.mortality-sparkline {
-  display: block;
 }
 
 /* Toast notification */
@@ -2059,9 +1950,7 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* ==========================================================
-   CHART TOOLBAR - fullscreen + zoom buttons
-   ========================================================== */
+/* CHART TOOLBAR - fullscreen + zoom buttons */
 
 .chart-toolbar {
   position: absolute;
@@ -2098,8 +1987,6 @@ input[type="range"]::-moz-range-thumb {
   border-color: var(--ink-dim);
 }
 
-/* In landscape fullscreen the filter panel is 300px wide on the right;
-   shift the toolbar so it sits just to the left of it */
 .chart-wrap.is-fullscreen .chart-toolbar {
   right: 314px;
 }
@@ -2117,9 +2004,7 @@ input[type="range"]::-moz-range-thumb {
   cursor: grabbing !important;
 }
 
-/* ==========================================================
-   FULLSCREEN - chart wrappers + SVG sizing
-   ========================================================== */
+/* FULLSCREEN - chart wrappers + SVG sizing */
 
 .chart-wrap:fullscreen,
 .sandbox-chart-wrap:fullscreen,
@@ -2149,9 +2034,7 @@ input[type="range"]::-moz-range-thumb {
   min-height: 0;
 }
 
-/* ==========================================================
-   FULLSCREEN FILTER OVERLAY (.controls re-parented into .chart-wrap)
-   ========================================================== */
+/* FULLSCREEN FILTER OVERLAY */
 
 .controls.is-fullscreen-controls {
   position: absolute;
@@ -2179,4 +2062,3 @@ input[type="range"]::-moz-range-thumb {
   top: 16px;
   left: calc((100vw - 300px) / 2);
 }
-
