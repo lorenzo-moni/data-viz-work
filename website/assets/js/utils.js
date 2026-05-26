@@ -7,7 +7,6 @@ function fmtPlayers(n) {
 }
 
 // Domain is set dynamically in data.js after computing the population median.
-// Placeholder keeps rendering sane if scale is ever read before data loads.
 let ALIVE_SCALE = d3
   .scaleLinear()
   .range(["#d96c6c", "#e6a356", "#7fc97f"])
@@ -22,19 +21,27 @@ function _rebuildAliveScale() {
   }
 }
 
+let _cbRenderPending = false;
+
 function setColorblindMode(on) {
+  if (CB_MODE === on) return;
   CB_MODE = on;
   localStorage.setItem("mobava_colorblind", on ? "1" : "0");
   _applyCBMode();
   _rebuildAliveScale();
-  // Clear cached time-series colors so they re-pick from the new palette
   if (typeof sandbox !== "undefined") sandbox.colorByGameId.clear();
-  rerenderAll();
+
   const btn = document.getElementById("cb-toggle");
   if (btn) btn.setAttribute("aria-pressed", on ? "true" : "false");
+
+  if (_cbRenderPending) return;
+  _cbRenderPending = true;
+  requestAnimationFrame(() => {
+    _cbRenderPending = false;
+    rerenderAll();
+  });
 }
 
-// Compute binned stats (median, p25, p90) grouped by a numeric key
 function binnedStats(games, keyFn, valFn) {
   const byKey = d3.rollup(games, (v) => v.map(valFn), keyFn);
   return Array.from(byKey, ([key, vals]) => {

@@ -255,7 +255,6 @@ function onBubbleClick(event, d) {
       state.selectedIds.add(d.id);
     }
     updateSelectionUI();
-    update();
   } else {
     showCard(d);
   }

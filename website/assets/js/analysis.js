@@ -83,7 +83,6 @@ function buildDecayCurve(games) {
     .forEach((g) => {
       const relDate = new Date(g.year, g.release_month, 1);
 
-      // find this game's player count at month 6 post-release to use as baseline
       let baselineAt6 = null;
       g.series.forEach(({ month, peak: monthPeak }) => {
         const obsDate = new Date(month);
