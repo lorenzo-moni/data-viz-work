@@ -1,6 +1,4 @@
-// ==========================================================
-// UTILS - shared helpers and constants
-// ==========================================================
+// UTILS: shared helpers and constants
 
 function fmtPlayers(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";

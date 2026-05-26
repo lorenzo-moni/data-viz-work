@@ -1,6 +1,4 @@
-// ==========================================================
-// MAIN - orchestrator: state, router, controls, selection UI, bootstrap
-// ==========================================================
+// MAIN ORCHESTRATOR
 
 // Populated asynchronously by loadGameData() before any chart renders
 let GAMES_DATA = [];
@@ -69,9 +67,7 @@ d3.selectAll("[data-view]").on("click", function () {
   switchView(this.dataset.view);
 });
 
-// ==========================================================
 // SELECTION UI (tray + nav state)
-// ==========================================================
 
 function colorForGame(id) {
   if (!sandbox.colorByGameId.has(id)) {
@@ -174,9 +170,7 @@ d3.select("#clear-selection").on("click", () => {
   if (state.view === "main") update();
 });
 
-// ==========================================================
 // UPDATE + BOOTSTRAP
-// ==========================================================
 
 function update() {
   const filtered = getFilteredGames();

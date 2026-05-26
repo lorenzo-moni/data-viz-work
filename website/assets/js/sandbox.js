@@ -1,6 +1,4 @@
-// ==========================================================
-// SANDBOX - § 02 The Sandbox (scatter + time series)
-// ==========================================================
+// SANDBOX VIEW
 
 const sandbox = {
   svg: null,
@@ -21,7 +19,6 @@ function initSandbox() {
   const svg = d3.select("#sandbox-chart");
   const bbox = svg.node().getBoundingClientRect();
 
-  // If the view is hidden, bbox is 0x0 - bail and we'll re-init when it's visible
   if (bbox.width === 0 || bbox.height === 0) {
     sandbox.initialized = false;
     return;
@@ -337,9 +334,7 @@ d3.selectAll("#sandbox-x, #sandbox-y, #sandbox-color").on(
   },
 );
 
-// ==========================================================
 // SANDBOX TIME SERIES
-// ==========================================================
 
 const ts = {
   svg: null,

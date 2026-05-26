@@ -1,6 +1,4 @@
-// ==========================================================
-// LANDSCAPE - § 01 The Landscape chart, interactions, game card
-// ==========================================================
+// LANDSCAPE VIEW
 
 const chart = {
   svg: null,
@@ -218,9 +216,7 @@ function renderChart(games) {
     .style("opacity", 0.85);
 }
 
-// ==========================================================
 // INTERACTIONS
-// ==========================================================
 
 const tooltip = d3.select("#tooltip");
 
@@ -255,9 +251,7 @@ function onBubbleClick(_event, d) {
   showCard(d);
 }
 
-// ==========================================================
 // GAME CARD
-// ==========================================================
 
 let activeCardGameId = null;
 
@@ -299,9 +293,7 @@ d3.select("#toggle-selection").on("click", () => {
   else update();
 });
 
-// ==========================================================
 // CONTROLS - filters, search, sliders
-// ==========================================================
 
 function setupGenreChips() {
   d3.select("#genre-filters")
