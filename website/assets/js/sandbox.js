@@ -489,6 +489,9 @@ function onTsHover(event) {
   ts.selected.forEach((game) => {
     const s = game.series;
     if (!s || s.length === 0) return;
+    const firstMonth = s[0].month;
+    const lastMonth = s[s.length - 1].month;
+    if (t < firstMonth || t > lastMonth) return;
     let i = bisectMonth(s, t);
     let pt;
     if (i === 0) {
