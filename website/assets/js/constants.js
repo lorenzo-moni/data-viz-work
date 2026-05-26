@@ -114,3 +114,72 @@ const COLOR_LABELS = {
   alive_ratio: "Alive ratio gradient",
   year: "Release year gradient",
 };
+
+const TYPE_COLORS = {
+  story: "#d96c6c",
+  hybrid: "#e6a356",
+  pure_online: "#7fc97f",
+};
+const TYPE_LABELS = {
+  story: "Story",
+  hybrid: "Hybrid",
+  pure_online: "Pure Online",
+};
+
+const TYPES = ["story", "hybrid", "pure_online"];
+
+const AAA_PUBLISHERS = new Set([
+  "Activision",
+  "Activision Blizzard",
+  "Blizzard Entertainment",
+  "Electronic Arts",
+  "EA",
+  "EA Sports",
+  "Ubisoft",
+  "Ubisoft Entertainment",
+  "Sony Interactive Entertainment",
+  "Sony Computer Entertainment",
+  "Microsoft Studios",
+  "Xbox Game Studios",
+  "Microsoft",
+  "Take-Two Interactive",
+  "Rockstar Games",
+  "2K",
+  "2K Games",
+  "Bethesda Softworks",
+  "Bethesda",
+  "ZeniMax",
+  "Square Enix",
+  "Square Enix Co., Ltd.",
+  "Capcom",
+  "Capcom Co., Ltd.",
+  "Bandai Namco Entertainment",
+  "Bandai Namco",
+  "Sega",
+  "Sega Games",
+  "Konami",
+  "Konami Digital Entertainment",
+  "Warner Bros. Games",
+  "Warner Bros. Interactive Entertainment",
+  "Nintendo",
+  "Nintendo of America",
+  "CD Projekt",
+  "CD PROJEKT S.A.",
+  "Ubisoft Montreal",
+  "Epic Games",
+]);
+
+const MONTHS_SHORTNAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];

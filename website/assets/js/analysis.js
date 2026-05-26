@@ -1,13 +1,11 @@
-// ==========================================================
-// ANALYSIS VIEW - § 03 Our Reading (13-Act Narrative)
-// ==========================================================
+// ANALYSIS VIEW
 
 const analysis = {
   initialized: false,
   observer: null,
 };
 
-// ---- shared helpers ----
+// shared helpers
 
 function archetypeClass(g) {
   return g.archetype.replace(/_/g, "-");
@@ -41,6 +39,9 @@ function fadingAAAGames() {
   );
 }
 
+// Returns the top-n slow-burn games: low-peak titles that either found fame late
+// (peak >2 years after release) or sustain >= 50% of their all-time peak in the
+// last 12 months.
 function slowBurnTop(n) {
   const candidates = GAMES_DATA.filter(
     (g) =>
@@ -66,6 +67,7 @@ function slowBurnTop(n) {
     const sustained = recentMed / maxPeak >= 0.5;
     return latePeak || sustained;
   });
+
   const pool = shaped.length >= n ? shaped : candidates;
   return pool
     .sort((a, b) => d3.descending(a.current_players, b.current_players))
@@ -73,7 +75,6 @@ function slowBurnTop(n) {
 }
 
 // True per-game decay curve from time series
-// Restricted to games released >= 2013 so early-life months are present in steamcharts
 function buildDecayCurve(games) {
   const buckets = new Map();
   const MAX_MONTHS = 120;
@@ -82,7 +83,7 @@ function buildDecayCurve(games) {
     .forEach((g) => {
       const relDate = new Date(g.year, g.release_month, 1);
 
-      // Find this game's player count at month 6 post-release to use as baseline
+      // find this game's player count at month 6 post-release to use as baseline
       let baselineAt6 = null;
       g.series.forEach(({ month, peak: monthPeak }) => {
         const obsDate = new Date(month);
@@ -119,44 +120,10 @@ function buildDecayCurve(games) {
     .sort((a, b) => d3.ascending(a.key, b.key));
 }
 
-// ---- Lede stat injections (run once at view init) ----
-
-function injectLedeStats() {
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-  const pct0 = (v) => Math.round(v * 100) + "%";
-  const games = GAMES_DATA;
-
-  const sorted = games
-    .map((g) => g.alive_ratio)
-    .filter(isFinite)
-    .sort(d3.ascending);
-  const medAll = d3.quantile(sorted, 0.5) || 0;
-  const p75 = d3.quantile(sorted, 0.75) || 0;
-  const immortals = games.filter(
-    (g) => g.alive_ratio > THRESHOLDS.IMMORTAL_MIN,
-  );
-
-  set("lede-total", games.length.toLocaleString());
-  set("lede-median-alive", pct0(medAll));
-  set("lede-p75-alive", pct0(p75));
-  set("lede-immortal-count", immortals.length.toLocaleString());
-  set(
-    "lede-immortal-pct",
-    ((immortals.length / games.length) * 100).toFixed(0) + "%",
-  );
-
-  set("lede-imm-thr", pct0(THRESHOLDS.IMMORTAL_MIN));
-  set("lede-mort-thr", pct0(THRESHOLDS.ALIVE_MIN));
-}
-
-// ---- Entry point ----
+// Entry Point
 
 function renderAnalysisView() {
   analysis.initialized = true;
-  injectLedeStats();
 
   d3.select("#analysis-to-sandbox").on("click", () => {
     const top = immortalsTop(1)[0];
@@ -172,6 +139,9 @@ function renderAnalysisView() {
         .classed("active", false);
       d3.select(this).classed("active", true);
       initAct9(this.dataset.sort);
+      const guide = document.getElementById("act9-guide");
+      if (guide && this.dataset.sort === "immortal")
+        guide.classList.add("done");
     });
 
   initAct1();
@@ -211,10 +181,16 @@ function renderAnalysisView() {
   });
 }
 
-// ---- ACT 1 - The Graveyard ----
+// ACT 1: The Graveyard
 function initAct1() {
   const games = GAMES_DATA;
-  const median = d3.median(games, (g) => g.alive_ratio);
+  const pct0 = (v) => Math.round(v * 100) + "%";
+  const sortedAlive = games
+    .map((g) => g.alive_ratio)
+    .filter(isFinite)
+    .sort(d3.ascending);
+  const median = d3.quantile(sortedAlive, 0.5) || 0;
+  const p75 = d3.quantile(sortedAlive, 0.75) || 0;
   const immortalCount = games.filter(
     (g) => g.alive_ratio > THRESHOLDS.IMMORTAL_MIN,
   ).length;
@@ -224,6 +200,14 @@ function initAct1() {
   d3.select("#act1-total").text(games.length.toLocaleString());
   d3.select("#act1-median").text((median * 100).toFixed(1) + "%");
   d3.select("#act1-alive").text(immortalPctAll);
+
+  d3.select("#act1-prose-total").text(games.length.toLocaleString());
+  d3.select("#act1-prose-median").text(pct0(median));
+  d3.select("#act1-prose-p75").text(pct0(p75));
+  d3.select("#act1-immortal-count").text(immortalCount.toLocaleString());
+  d3.select("#act1-immortal-pct").text(
+    ((immortalCount / games.length) * 100).toFixed(0) + "%",
+  );
 
   const margin = { top: 20, right: 20, bottom: 40, left: 60 };
   const svgEl = document.getElementById("act1-chart");
@@ -350,7 +334,7 @@ function initAct1() {
   brushSel.call(brushObj);
 }
 
-// ---- ACT 2 - Time is not the verdict ----
+// ACT 2: Time is not the verdict
 function initAct2(filter) {
   filter = filter || "all";
   const allGames = GAMES_DATA.filter(
@@ -402,7 +386,7 @@ function initAct2(filter) {
     .selectAll("text")
     .remove();
 
-  // Rolling median line by year
+  // rolling median line by year
   const byYear = d3.rollup(
     games,
     (v) => d3.median(v, (d) => d.alive_ratio),
@@ -426,7 +410,7 @@ function initAct2(filter) {
         .y((d) => y(Math.max(0.001, d.med))),
     );
 
-  // Dots (jittered)
+  // Dots with jittering on year
   const jitter = () => (Math.random() - 0.5) * 0.6;
   g.selectAll("circle.dot")
     .data(games)
@@ -453,7 +437,7 @@ function initAct2(filter) {
     .attr("text-anchor", "middle")
     .text("alive ratio");
 
-  // Chips
+  // Chips for all games and AAA Only
   d3.select("#act2-chips")
     .selectAll(".act-chip")
     .on("click", function () {
@@ -465,7 +449,7 @@ function initAct2(filter) {
     });
 }
 
-// ---- ACT 3 - Two populations, not one ----
+// ACT 3: Three populations, not one
 function initAct3() {
   const games = GAMES_DATA;
   const margin = { top: 20, right: 24, bottom: 40, left: 60 };
@@ -483,23 +467,11 @@ function initAct3() {
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const types = ["story", "hybrid", "pure_online"];
-  const typeColors = {
-    story: "#d96c6c",
-    hybrid: "#e6a356",
-    pure_online: "#7fc97f",
-  };
-  const typeLabels = {
-    story: "Story",
-    hybrid: "Hybrid",
-    pure_online: "Pure Online",
-  };
-
   const x = d3.scaleLinear().domain([0, 0.8]).range([0, w]);
-  const bandH = h / types.length;
+  const bandH = h / TYPES.length;
   const nBins = 40;
 
-  types.forEach((type, i) => {
+  TYPES.forEach((type, i) => {
     const vals = games
       .filter((d) => d.game_type === type)
       .map((d) => d.alive_ratio)
@@ -534,54 +506,34 @@ function initAct3() {
       .attr("width", (b) => Math.max(0, x(b.x1) - x(b.x0) - 2))
       .attr("y", (b) => (b.length > 0 ? yLocal(b.length) : bandH))
       .attr("height", (b) => (b.length > 0 ? bandH - 4 - yLocal(b.length) : 0))
-      .attr("fill", typeColors[type])
+      .attr("fill", TYPE_COLORS[type])
       .attr("opacity", 0.7);
 
     gy.append("text")
       .attr("x", w - 4)
       .attr("y", 14)
       .attr("font-size", 10)
-      .attr("fill", typeColors[type])
+      .attr("fill", TYPE_COLORS[type])
       .attr("font-family", "var(--mono)")
       .attr("text-anchor", "end")
-      .text(typeLabels[type]);
+      .text(TYPE_LABELS[type]);
 
-    if (i === types.length - 1) {
+    if (i === TYPES.length - 1) {
       gy.append("g")
         .attr("class", "axis axis-x")
         .attr("transform", `translate(0,${bandH - 4})`)
         .call(d3.axisBottom(x).ticks(5).tickFormat(d3.format(".0%")));
     }
   });
-
-  g.append("text")
-    .attr("x", x(0.55))
-    .attr("y", h - 8)
-    .attr("text-anchor", "middle")
-    .attr("font-size", 8)
-    .attr("fill", "var(--alive)")
-    .attr("font-family", "var(--mono)")
-    .text("endurance");
 }
 
-// ---- ACT 4- Games built not to end ----
+// ACT 4: Three patterns, not a hierarchy
 function initAct4() {
   const games = GAMES_DATA.filter(
     (g) =>
       g.engagement_total >= THRESHOLDS.ENGAGEMENT_FLOOR ||
       g.game_type === "pure_online",
   );
-  const types = ["story", "hybrid", "pure_online"];
-  const typeColors = {
-    story: "#d96c6c",
-    hybrid: "#e6a356",
-    pure_online: "#7fc97f",
-  };
-  const typeLabels = {
-    story: "Story",
-    hybrid: "Hybrid",
-    pure_online: "Pure Online",
-  };
 
   const margin = { top: 32, right: 24, bottom: 44, left: 24 };
   const svgEl = document.getElementById("act4-chart");
@@ -598,7 +550,7 @@ function initAct4() {
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const colW = w / types.length;
+  const colW = w / TYPES.length;
   const y = d3.scaleLinear().domain([0, 1]).range([h, 0]);
 
   g.append("g")
@@ -611,15 +563,15 @@ function initAct4() {
     .remove();
 
   // Column labels
-  types.forEach((type, i) => {
+  TYPES.forEach((type, i) => {
     g.append("text")
       .attr("x", colW * i + colW / 2)
       .attr("y", -12)
       .attr("text-anchor", "middle")
       .attr("font-size", 10)
-      .attr("fill", typeColors[type])
+      .attr("fill", TYPE_COLORS[type])
       .attr("font-family", "var(--mono)")
-      .text(typeLabels[type]);
+      .text(TYPE_LABELS[type]);
 
     // Median line
     const typeGames = games.filter((d) => d.game_type === type);
@@ -630,7 +582,7 @@ function initAct4() {
       .attr("x2", xCenter + colW * 0.35)
       .attr("y1", y(Math.max(0.001, med)))
       .attr("y2", y(Math.max(0.001, med)))
-      .attr("stroke", typeColors[type])
+      .attr("stroke", TYPE_COLORS[type])
       .attr("stroke-width", 1.5)
       .attr("opacity", 0.6);
   });
@@ -639,7 +591,7 @@ function initAct4() {
   const nodes = games.map((d) => ({
     ...d,
     ty: y(Math.max(0.001, d.alive_ratio)),
-    tx: colW * types.indexOf(d.game_type) + colW / 2,
+    tx: colW * TYPES.indexOf(d.game_type) + colW / 2,
   }));
 
   const sim = d3
@@ -686,7 +638,7 @@ function initAct4() {
     });
 }
 
-// ---- ACT 5- Genre is a costume ----
+// ACT 5: Genre is a costume
 function initAct5() {
   const games = GAMES_DATA;
   const countMap = d3.rollup(
@@ -765,12 +717,12 @@ function initAct5() {
     .attr("fill", "var(--ink-dim)")
     .text("global median");
 
-  // Bars + whiskers
+  // Bars and whiskers
   statsSorted.forEach((s) => {
     const bx = x(s.key);
     const bw = x.bandwidth();
 
-    // p25-p90 whisker
+    // p25 and p90 whisker
     g.append("line")
       .attr("x1", bx + bw / 2)
       .attr("x2", bx + bw / 2)
@@ -799,7 +751,7 @@ function initAct5() {
     .text("median alive ratio");
 }
 
-// ---- ACT 6- Loved is not alive ----
+// ACT 6: Loved is not alive
 function initAct6() {
   const games = GAMES_DATA.filter(
     (g) => g.ratings_count > 0 && g.rating > 0 && isFinite(g.alive_ratio),
@@ -809,9 +761,7 @@ function initAct6() {
   const aliveThresh = THRESHOLDS.ALIVE_MIN;
   const lovedGames = games.filter((g) => g.rating >= ratingThresh);
   const lovedAlive = lovedGames.filter((g) => g.alive_ratio >= aliveThresh);
-  const belovedBuried = lovedGames.filter(
-    (g) => g.alive_ratio < aliveThresh && g.game_type === "story",
-  );
+  const belovedBuried = lovedGames.filter((g) => g.alive_ratio < aliveThresh);
   const set = (id, val) => {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
@@ -1003,8 +953,8 @@ function showQuadrantPanel(q, games) {
       d.alive_ratio < q.y1 &&
       isFinite(d.alive_ratio),
   );
-  const ranked = mortalityIndex(sub)
-    .sort((a, b) => d3.descending(a._score, b._score))
+  const ranked = [...sub]
+    .sort((a, b) => d3.descending(a.alive_ratio, b.alive_ratio))
     .slice(0, 8);
 
   title.textContent = q.label;
@@ -1020,7 +970,7 @@ function showQuadrantPanel(q, games) {
   if (guide && q.id === "tr") guide.classList.add("done");
 }
 
-// ---- ACT 7- Launch size is not destiny ----
+// ACT 7: Launch size is not destiny
 function initAct7() {
   const games = GAMES_DATA.filter(
     (g) =>
@@ -1176,7 +1126,7 @@ function initAct7() {
   });
 }
 
-// ---- ACT 8- Release month is a rounding error ----
+// ACT 8: Release month is a rounding error
 function initAct8(filter) {
   filter = filter || "all";
   let games = GAMES_DATA;
@@ -1185,20 +1135,6 @@ function initAct8(filter) {
       (g) => g.archetype === "aaa" || g.archetype === "fading_aaa",
     );
 
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
   const peakStats = binnedStats(
     games,
     (g) => g.release_month,
@@ -1240,6 +1176,7 @@ function initAct8(filter) {
       }),
     );
 
+  const hoveredMonths = new Set();
   for (let m = 0; m < 12; m++) {
     const angle = (m / 12) * 2 * Math.PI;
     const nextAngle = ((m + 1) / 12) * 2 * Math.PI;
@@ -1279,10 +1216,12 @@ function initAct8(filter) {
       .attr("opacity", 0.8)
       .attr("cursor", "pointer")
       .on("mouseover", () => {
-        tooltip.innerHTML = `<strong>${monthNames[m]}</strong><br>Peak: ${fmtPlayers(Math.round(peakVals[m]))}<br>Alive Rate: ${(aliveVals[m] * 100).toFixed(1)}%<br>Games: ${games.filter((g) => g.release_month === m).length}`;
+        tooltip.innerHTML = `<strong>${MONTHS_SHORTNAMES[m]}</strong><br>Peak: ${fmtPlayers(Math.round(peakVals[m]))}<br>Alive Rate: ${(aliveVals[m] * 100).toFixed(1)}%<br>Games: ${games.filter((g) => g.release_month === m).length}`;
         tooltip.classList.add("visible");
+        hoveredMonths.add(m);
         const guide = document.getElementById("act8-guide");
-        if (guide) guide.classList.add("done");
+        if (guide && hoveredMonths.has(10) && hoveredMonths.has(2))
+          guide.classList.add("done");
       })
       .on("mousemove", (ev) => {
         tooltip.style.left = ev.pageX + 12 + "px";
@@ -1307,7 +1246,7 @@ function initAct8(filter) {
       .attr("font-size", 8)
       .attr("font-family", "var(--mono)")
       .attr("fill", "var(--ink-dim)")
-      .text(monthNames[m]);
+      .text(MONTHS_SHORTNAMES[m]);
   }
 
   // Center labels
@@ -1369,7 +1308,7 @@ function initAct8(filter) {
     });
 }
 
-// ---- ACT 9- The DNA of endurance ----
+// ACT 9: The DNA of endurance
 function initAct9(sortKey) {
   sortKey = sortKey || "lift";
   const immortals = GAMES_DATA.filter((g) => g.archetype === "immortal");
@@ -1499,7 +1438,7 @@ function initAct9(sortKey) {
     .attr("font-size", 8)
     .attr("fill", "var(--dying)")
     .attr("font-family", "var(--mono)")
-    .text("← graveyard");
+    .text("graveyard");
   g.append("text")
     .attr("x", x(maxAbs))
     .attr("y", sorted.length * barH + 12)
@@ -1507,10 +1446,10 @@ function initAct9(sortKey) {
     .attr("font-size", 8)
     .attr("fill", "var(--alive)")
     .attr("font-family", "var(--mono)")
-    .text("immortal →");
+    .text("immortal");
 }
 
-// ---- ACT 10- Attention is oxygen ----
+// ACT 10: Attention is oxygen
 function initAct10(s) {
   let signal = s || "reddit";
   const field = "reddit_count";
@@ -1609,7 +1548,7 @@ function initAct10(s) {
     });
 }
 
-// ---- ACT 11- The shape of a survivor ----
+// ACT 11: The shape of a survivor
 function initAct11(archs) {
   archs = archs && archs.length ? archs : ["immortal"];
 
@@ -1630,8 +1569,6 @@ function initAct11(archs) {
 
   const x = d3.scaleLinear().domain([0, 72]).range([0, w]);
 
-  const allArchTypes = ["immortal", "aaa", "fading_aaa", "slow_burn", "mid"];
-
   const curvesByArch = archs.map((a) => ({
     arch: a,
     curve: buildDecayCurve(GAMES_DATA.filter((d) => d.archetype === a)).filter(
@@ -1639,7 +1576,7 @@ function initAct11(archs) {
     ),
   }));
 
-  const allCurves = allArchTypes.map((a) =>
+  const allCurves = ALL_ARCHETYPES.map((a) =>
     buildDecayCurve(GAMES_DATA.filter((d) => d.archetype === a)).filter(
       (d) => d.key <= 72,
     ),
@@ -1743,7 +1680,7 @@ function initAct11(archs) {
     });
 }
 
-// ---- ACT 12 - The DNA of survival ----
+// ACT 12: The DNA of survival
 function initAct12(selected) {
   selected = selected || ["aaa"];
 
@@ -1769,7 +1706,7 @@ function initAct12(selected) {
     { key: "reviews", label: "Reviews", fn: (g) => g.ratings_count },
   ];
 
-  // Compute medians for all archetypes (normalisation uses all three always)
+  // Compute medians for all archetypes
   const medians = {};
   ALL_ARCHETYPES.forEach((arch) => {
     const pool = GAMES_DATA.filter((g) => g.archetype === arch);
@@ -1787,7 +1724,7 @@ function initAct12(selected) {
     normMax[ax.key] = d3.max(ALL_ARCHETYPES, (a) => medians[a][ax.key]) || 1;
   });
 
-  // Fixed viewBox — no getBoundingClientRect needed; CSS width:100% scales it
+  // Fixed viewBox no getBoundingClientRect needed
   const VW = 500,
     VH = 500;
   const CX = 250,
@@ -1824,7 +1761,7 @@ function initAct12(selected) {
       .attr("stroke-dasharray", t < 1 ? "3,3" : null);
   });
 
-  // Spokes only (labels added after polygons so they always render on top)
+  // Spokes only
   AXES.forEach((ax, i) => {
     const angle = i * angleSlice - Math.PI / 2;
     spinG
@@ -1882,13 +1819,7 @@ function initAct12(selected) {
       .text(ax.label);
   });
 
-  // Also cancel any leftover animation from a previous session
-  if (window._act12Raf) {
-    cancelAnimationFrame(window._act12Raf);
-    window._act12Raf = null;
-  }
-
-  // ── Chip handler (same pattern as Act 11) ──
+  // Chip handler
   d3.select("#act12-chips")
     .selectAll(".act-chip")
     .on("click", function () {
@@ -1909,12 +1840,15 @@ function initAct12(selected) {
       const guide = document.getElementById("act12-guide");
       if (guide) {
         const s = new Set(newSelected);
-        guide.classList.toggle("done", s.has("immortal") && s.has("fading_aaa"));
+        guide.classList.toggle(
+          "done",
+          s.has("immortal") && s.has("fading_aaa"),
+        );
       }
     });
 }
 
-// ---- ACT 13- Now make your own reading ----
+// ACT 13: The ones worth keeping
 function initAct13() {
   const top5immortal = immortalsTop(5);
   const top5fading = fadingAAAGames().slice(0, 5);
@@ -1979,5 +1913,5 @@ function makeSpark(g) {
     .map((d) => `${xS(d.month).toFixed(1)},${yS(d.players).toFixed(1)}`)
     .join(" ");
   const col = ALIVE_SCALE(g.alive_ratio);
-  return `<svg width="${sw}" height="${sh}" class="mortality-sparkline"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.2" opacity="0.8"/></svg>`;
+  return `<svg width="${sw}" height="${sh}" class="alive-sparkline"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.2" opacity="0.8"/></svg>`;
 }

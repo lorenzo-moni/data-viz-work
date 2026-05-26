@@ -52,47 +52,6 @@ function parseCategories(str) {
     .filter(Boolean);
 }
 
-const AAA_PUBLISHERS = new Set([
-  "Activision",
-  "Activision Blizzard",
-  "Blizzard Entertainment",
-  "Electronic Arts",
-  "EA",
-  "EA Sports",
-  "Ubisoft",
-  "Ubisoft Entertainment",
-  "Sony Interactive Entertainment",
-  "Sony Computer Entertainment",
-  "Microsoft Studios",
-  "Xbox Game Studios",
-  "Microsoft",
-  "Take-Two Interactive",
-  "Rockstar Games",
-  "2K",
-  "2K Games",
-  "Bethesda Softworks",
-  "Bethesda",
-  "ZeniMax",
-  "Square Enix",
-  "Square Enix Co., Ltd.",
-  "Capcom",
-  "Capcom Co., Ltd.",
-  "Bandai Namco Entertainment",
-  "Bandai Namco",
-  "Sega",
-  "Sega Games",
-  "Konami",
-  "Konami Digital Entertainment",
-  "Warner Bros. Games",
-  "Warner Bros. Interactive Entertainment",
-  "Nintendo",
-  "Nintendo of America",
-  "CD Projekt",
-  "CD PROJEKT S.A.",
-  "Ubisoft Montreal",
-  "Epic Games",
-]);
-
 function parsePublishers(raw) {
   if (!raw) return [];
   return String(raw)
@@ -106,12 +65,11 @@ function isAAAPublisher(publishers) {
 }
 
 const THRESHOLDS = {
-  IMMORTAL_YEAR_CUTOFF: 2018,
+  IMMORTAL_YEAR_CUTOFF: 2022,
   ALIVE_MIN: null,
   IMMORTAL_MIN: 0.5,
   ALIVE_MEDIAN: null,
   DEAD_MAX: 0.1,
-
   FADING_AAA_ALIVE_MAX: 0.05,
   SLOW_BURN_PEAK_MAX: 100000,
   SLOW_BURN_ALIVE_MIN: 0.1,
@@ -121,8 +79,7 @@ const THRESHOLDS = {
   PURE_ONLINE_PEAK_FLOOR: 1000,
 };
 
-// Fraction of months the game maintained ≥40% of its all-time peak.
-// Always in [0,1] and works identically for all game types.
+// Fraction of months the game maintained >= 20% of its all-time peak.
 function computeLongevityScore(timeseries) {
   if (!timeseries || timeseries.length === 0) return 0;
   const playerCounts = timeseries.map((m) => m.players || 0);
@@ -269,7 +226,7 @@ async function loadGameData() {
         peak: s.peak,
       })),
       current_players: currentPlayers,
-      // RAWG engagement fields (used by Acts 3, 7, 11, 15 for small-N filtering)
+      // RAWG engagement fields
       engagement_total: engagementTotal,
       positive_outcome: positiveOutcome,
       status_playing: statusPlaying,
@@ -277,7 +234,7 @@ async function loadGameData() {
       status_dropped: statusDropped,
       status_owned: statusOwned,
 
-      game_type, // "story" | "hybrid" | "pure_online"
+      game_type, // story | hybrid | pure_online
       categories,
       ratings_count: +row.ratings_count || 0,
       publishers: parsePublishers(row.publishers),
@@ -305,9 +262,9 @@ async function loadGameData() {
 
     const aaaPublished = isAAAPublisher(g.publishers);
 
-    // Slow-burn guard: require the game has a meaningful history (≥12 months of SteamCharts
+    // Slow-burn guard: require the game has a meaningful history (>=12 months of SteamCharts
     // data) and was released before SLOW_BURN_YEAR_CUTOFF so brand-new games still climbing
-    // their launch curve are not mis-tagged as "slow burns".
+    // their launch curve are not mis-tagged as slow burns.
     const isSlowBurnCandidate =
       g.peak_players < THRESHOLDS.SLOW_BURN_PEAK_MAX &&
       g.year <= THRESHOLDS.SLOW_BURN_YEAR_CUTOFF &&

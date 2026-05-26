@@ -21,7 +21,7 @@ function initSandbox() {
   const svg = d3.select("#sandbox-chart");
   const bbox = svg.node().getBoundingClientRect();
 
-  // If the view is hidden, bbox is 0×0 - bail and we'll re-init when it's visible
+  // If the view is hidden, bbox is 0x0 - bail and we'll re-init when it's visible
   if (bbox.width === 0 || bbox.height === 0) {
     sandbox.initialized = false;
     return;

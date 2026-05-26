@@ -1,10 +1,8 @@
-// ==========================================================
-// CHART TOOLBAR - shared fullscreen + zoom toolbar helper
-// ==========================================================
+// CHART TOOLBAR: shared fullscreen + zoom toolbar helper
 
-const _toolbarRegistry = new Map(); // wrapEl → { svgEl, chartObj, reinit, hasOverlayPanel }
+const _toolbarRegistry = new Map();
 let _fullscreenListenerAttached = false;
-let _reparentedEls = []; // { el, parent, next, fsClass }
+let _reparentedEls = [];
 
 const _OVERLAY_ITEMS = [
   { sel: ".controls", fsClass: "is-fullscreen-controls" },
@@ -33,7 +31,7 @@ function setupChartToolbar({
   reinit,
   hasOverlayPanel = false,
 }) {
-  // Remove any existing toolbar (idempotent - safe to call on reinit)
+  // remove any existing toolbar
   const existing = wrapEl.querySelector(".chart-toolbar");
   if (existing) existing.remove();
 
@@ -92,14 +90,14 @@ function _onFullscreenChange() {
 
     wrapEl.classList.toggle("is-fullscreen", isFullscreen);
 
-    // Update the fullscreen button icon
+    // update the fullscreen button icon
     const btn = wrapEl.querySelector(".ct-fullscreen");
     if (btn) {
       btn.innerHTML = isFullscreen ? _ICON_COMPRESS : _ICON_EXPAND;
       btn.title = isFullscreen ? "Exit fullscreen (Esc)" : "Fullscreen";
     }
 
-    // Re-parent overlay elements (filters, game card, selection tray) - landscape only
+    // re-parent overlay elements (filters, game card, selection tray)
     if (opts.hasOverlayPanel) {
       if (isFullscreen) {
         _reparentedEls = [];
@@ -124,7 +122,7 @@ function _onFullscreenChange() {
       }
     }
 
-    // Reinit the chart so it recomputes dimensions for the new size
+    // reinit the chart so it recomputes dimensions for the new size
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         opts.reinit();

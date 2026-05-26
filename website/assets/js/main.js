@@ -142,7 +142,7 @@ function updateSelectionUI() {
           .text((d) => d.name);
         e.append("button")
           .attr("class", "sel-remove")
-          .text("×")
+          .text("x")
           .on("click", (_ev, d) => {
             state.selectedIds.delete(d.id);
             updateSelectionUI();
